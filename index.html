@@ -121,7 +121,7 @@
 
   <div id="controls">
    
-    <input id="answer" type="text" placeholder="Type name as Gaeilge (case-sensitive)" style="width: 280px;" />
+    <input id="answer" type="text" placeholder="Type name as Gaeilge (case-sensitive)" style="width: 250px;" />
     <button id="enterBtn">Enter</button>
     <button id="hint1Btn" title="Toggle full map highlight">Show map</button>
     <button id="hint2Btn" title="Toggle first 3 characters (including space)">Starting characters</button>
@@ -177,10 +177,7 @@
     // ---------- DOM ----------
     const canvas = document.getElementById('map');
     const ctx = canvas.getContext('2d');
-
-    const answerInput = document.getElementById("result").textContent =
-  `Incorrect. Correct answer: ${counties[currentCounty][0]} (${currentCounty})`;
-
+    const answerInput = document.getElementById('answer');
     const enterBtn = document.getElementById('enterBtn');
     const hint1Btn = document.getElementById('hint1Btn');
     const hint2Btn = document.getElementById('hint2Btn');
@@ -199,7 +196,7 @@
     let currentIndex = null;
 
     let globalBounds = null;
-    const latScaleFactor = 1.0;
+    const latScaleFactor = 0.7;
 
     // hint toggles
     let showMapMode = false;
@@ -289,21 +286,12 @@
       return {minX:minX-padX,maxX:maxX+padX,minY:minY-padY,maxY:maxY+padY};
     }
     function project(pt,b){
-      const padding = 20;
-      const w = canvas.width, h = canvas.height;
-    
-      const spanX = bounds.maxX - bounds.minX;
-      const spanY = bounds.maxY - bounds.minY;
-    
-      const scale = Math.min((w - 2*padding) / spanX, (h - 2*padding) / spanY);
-    
-      // center the map
-      const offsetX = (w - scale * spanX) / 2;
-      const offsetY = (h - scale * spanY) / 2;
-    
-      const x = offsetX + (pt.x - bounds.minX) * scale;
-      const y = h - (offsetY + (pt.y - bounds.minY) * scale); // invert y
-      return { x, y };
+      const pad=20,w=canvas.width,h=canvas.height;
+      const sx=(w-2*pad)/(b.maxX-b.minX);
+      const sy=(h-2*pad)/(b.maxY-b.minY);
+      const x=pad+(pt.x-b.minX)*sx;
+      const y=h-(pad+(pt.y-b.minY)*sy);
+      return {x,y};
     }
 
     // ---------- Drawing ----------
@@ -476,5 +464,3 @@
   </script>
 </body>
 </html>
-
-
