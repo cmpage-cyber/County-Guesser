@@ -285,14 +285,40 @@
       const padX=(maxX-minX)*0.05, padY=(maxY-minY)*0.05;
       return {minX:minX-padX,maxX:maxX+padX,minY:minY-padY,maxY:maxY+padY};
     }
-    function project(pt,b){
-      const pad=20,w=canvas.width,h=canvas.height;
-      const sx=(w-2*pad)/(b.maxX-b.minX);
-      const sy=(h-2*pad)/(b.maxY-b.minY);
-      const x=pad+(pt.x-b.minX)*sx;
-      const y=h-(pad+(pt.y-b.minY)*sy);
-      return {x,y};
+
+    function project(pt, b) {
+      const padding = 20;
+      const w = canvas.width;
+      const h = canvas.height;
+    
+      const spanX = b.maxX - b.minX;
+      const spanY = b.maxY - b.minY;
+    
+      // ONE scale for both axes → preserves aspect ratio
+      const scale = Math.min(
+        (w - 2 * padding) / spanX,
+        (h - 2 * padding) / spanY
+      );
+    
+      // centre within the canvas
+      const offsetX = (w - scale * spanX) / 2;
+      const offsetY = (h - scale * spanY) / 2;
+    
+      const x = offsetX + (pt.x - b.minX) * scale;
+      const y = h - (offsetY + (pt.y - b.minY) * scale); // invert Y
+      return { x, y };
     }
+
+
+
+
+
+
+
+
+
+
+    
 
     // ---------- Drawing ----------
     function clearCanvas(){
@@ -464,4 +490,5 @@
   </script>
 </body>
 </html>
+
 
