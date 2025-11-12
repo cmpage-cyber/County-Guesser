@@ -120,10 +120,10 @@
   <div id="hintText"></div>
 
   <div id="controls">
-    <input id="answer" type="text" placeholder="Type Irish name (case-sensitive)" />
+    <input id="answer" type="text" placeholder="Type name as Gaeilge(case-sensitive)" />
     <button id="enterBtn">Enter</button>
     <button id="hint1Btn" title="Toggle full map highlight">Show map</button>
-    <button id="hint2Btn" title="Toggle first 3 letters">Starting characters</button>
+    <button id="hint2Btn" title="Toggle first 3 characters (including space)">Starting characters</button>
   </div>
 
   <div class="layout">
@@ -142,7 +142,7 @@
       "Antrim":      ["Aontroim",        "‘Lone ridge’ (aon + droim)."],
       "Armagh":      ["Ard Mhacha",      "‘Height of Macha’ (goddess Macha)."],
       "Down":        ["An Dún",          "‘The fort’."] ,
-      "Fermanagh":   ["Fear Manach",     "‘Men/land of Manach’."] ,
+      "Fermanagh":   ["Fir Manach",     "‘Men/land of Manach’."] ,
       "Tyrone":      ["Tír Eoghain",     "‘Land of Eoghan’."] ,
       "Derry":       ["Doire",           "‘Oak grove/wood’."] ,
       "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’."] ,
@@ -362,7 +362,7 @@
       showFirst3 = on;
       if(!on){ hintTextEl.textContent=''; return; }
       const c = counties[currentIndex]; const ga = c.ga || '';
-      hintTextEl.textContent = 'First 3 letters: ' + ga.slice(0,3);
+      hintTextEl.textContent = 'First 3 characters (including space): ' + ga.slice(0,3);
     }
 
     // ---------- Round control ----------
@@ -463,3 +463,4 @@
   </script>
 </body>
 </html>
+
