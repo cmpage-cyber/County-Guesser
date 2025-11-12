@@ -99,7 +99,7 @@
     <input id="answer" type="text" placeholder="Type Irish name (case-sensitive)">
     <button id="enterBtn">Enter</button>
     <button id="hint1Btn">Show map</button>
-    <button id="hint2Btn">First 3 letters</button>
+    <button id="hint2Btn">Starting characters</button>
   </div>
 
   <div class="layout" style="margin-top: 0.75rem;">
@@ -425,7 +425,7 @@
       if (currentIndex == null || usedHint2) return;
       const county = counties[currentIndex];
       const ga = county.ga || '';
-      hintTextEl.textContent = 'First 3 letters: ' + ga.slice(0, 3);
+      hintTextEl.textContent = 'Starting characters: ' + ga.slice(0, 3);
       usedHint2 = true;
       hint2Btn.disabled = true;
     }
