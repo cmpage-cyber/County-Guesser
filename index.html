@@ -121,7 +121,7 @@
 
   <div id="controls">
    
-    <input id="answer" type="text" placeholder="Type name as Gaeilge (case-sensitive)" style="width: 250px;" />
+    <input id="answer" type="text" placeholder="Type name as Gaeilge (case-sensitive)" style="width: 280px;" />
     <button id="enterBtn">Enter</button>
     <button id="hint1Btn" title="Toggle full map highlight">Show map</button>
     <button id="hint2Btn" title="Toggle first 3 characters (including space)">Starting characters</button>
@@ -442,7 +442,7 @@
       if(!guess) return;
 
       const correct = (guess === ga);
-      lastMessage = correct ? `✅Correct: ${ga}` : `❌Incorrect. Correct answer: ${ga}`;
+      lastMessage = correct ? `✅Correct: ${ga}` : `❌Incorrect. Correct answer: ${ga} (${en})`;
       if(correct) score += 1;
 
       // stable id for this row
@@ -490,5 +490,6 @@
   </script>
 </body>
 </html>
+
 
 
