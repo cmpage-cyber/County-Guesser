@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Irish County Quiz (Irish names)</title>
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f4;
+    }
+    body {
+      margin: 0;
+      padding: 1rem;
+    }
+    h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.4rem;
+    }
+    .layout {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    #mapContainer {
+      background: #ffffff;
+      padding: 0.5rem;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    canvas {
+      display: block;
+      background: #ffffff;
+      border: 1px solid #ddd;
+    }
+    #rightPanel {
+      min-width: 260px;
+      max-width: 320px;
+      background: #ffffff;
+      padding: 0.75rem;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    #log {
+      white-space: pre-wrap;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      border-top: 1px solid #eee;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+    #controls {
+      margin-top: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    #answer {
+      flex: 1 1 200px;
+      padding: 0.4rem 0.5rem;
+      font-size: 0.95rem;
+    }
+    button {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background: #f6f6f6;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    #status {
+      margin-top: 0.4rem;
+      font-size: 0.9rem;
+    }
+    #hintText {
+      margin-top: 0.25rem;
+      font-size: 0.9rem;
+      color: #444;
+    }
+    #roundInfo {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Irish County Quiz (Irish names)</h1>
+  <div id="roundInfo">Loading…</div>
+  <div id="status"></div>
+  <div id="hintText"></div>
+
+  <div id="controls">
+    <input id="answer" type="text" placeholder="Type Irish name (case-sensitive)">
+    <button id="enterBtn">Enter</button>
+    <button id="hint1Btn">Show map</button>
+    <button id="hint2Btn">First 3 letters</button>
+  </div>
+
+  <div class="layout" style="margin-top: 0.75rem;">
+    <div id="mapContainer">
+      <canvas id="map" width="520" height="520"></canvas>
+    </div>
+    <div id="rightPanel">
+      <strong>Answer log</strong>
+      <div id="log">No answers yet.</div>
+    </div>
+  </div>
+
+  <script>
+    // ---- basic DOM refs ----
+    const canvas = document.getElementById('map');
+    const ctx = canvas.getContext('2d');
+    const answerInput = document.getElementById('answer');
+    const enterBtn = document.getElementById('enterBtn');
+    const hint1Btn = document.getElementById('hint1Btn');
+    const hint2Btn = document.getElementById('hint2Btn');
+    const statusEl = document.getElementById('status');
+    const hintTextEl = document.getElementById('hintText');
+    const logEl = document.getElementById('log');
+    const roundInfoEl = document.getElementById('roundInfo');
+
+    // ---- game state ----
+    let counties = [];          // { en, ga, rings: [ [ {x,y}, ... ], ... ] }
+    let order = [];             // random order of indices
+    let pos = 0;                // position in order
+    let shown = [];             // { index, correct, answer }
+    let score = 0;
+    let currentIndex = null;
+    let globalBounds = null;    // bounds for full map drawing
+    let latScaleFactor = 0.7;   // flatten factor for Ireland
+
+    let usedHint1 = false;
+    let usedHint2 = false;
+    let lastMessage = '';
+
+    // ---- utility: random shuffle ----
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // ---- name helpers (mirror Python logic) ----
+    function getNameEn(props) {
+      const keys = ["name_en", "NAME_EN", "CountyName", "name", "NAME", "County", "county"];
+      for (const k of keys) {
+        if (props && typeof props[k] === 'string' && props[k].trim()) return props[k].trim();
+      }
+      return '';
+    }
+    function getNameGa(props) {
+      const keys = ["name_ga", "NAME_GA", "GaelicName"];
+      for (const k of keys) {
+        if (props && typeof props[k] === 'string' && props[k].trim()) return props[k].trim();
+      }
+      return '';
+    }
+
+    // ---- geometry helpers ----
+    function ringsFromGeometry(geom) {
+      const t = geom.type;
+      const C = geom.coordinates || [];
+      const out = [];
+      const convRing = (ring) => ring.map(([x, y]) => ({ lon: Number(x), lat: Number(y) }));
+      if (t === 'Polygon') {
+        for (const r of C) out.push(convRing(r));
+      } else if (t === 'MultiPolygon') {
+        for (const poly of C) {
+          for (const r of poly) out.push(convRing(r));
+        }
+      }
+      return out;
+    }
+
+    // ---- load and prepare GeoJSON ----
+    async function loadData() {
+      const resp = await fetch('irish_counties_simplified.geojson');
+      if (!resp.ok) throw new Error('Failed to load GeoJSON');
+      const data = await resp.json();
+
+      // First pass: collect unscaled coords + global lat min/max
+      const rawFeatures = [];
+      let latMin = Infinity, latMax = -Infinity;
+
+      for (const feat of data.features || []) {
+        const props = feat.properties || {};
+        const en = getNameEn(props);
+        const ga = getNameGa(props);
+        const rings = ringsFromGeometry(feat.geometry || {});
+        if (!rings.length) continue;
+
+        rawFeatures.push({ en, ga, rings });
+
+        for (const ring of rings) {
+          for (const pt of ring) {
+            if (pt.lat < latMin) latMin = pt.lat;
+            if (pt.lat > latMax) latMax = pt.lat;
+          }
+        }
+      }
+
+      if (!rawFeatures.length) throw new Error('No usable counties in GeoJSON');
+
+      const latMid = 0.5 * (latMin + latMax);
+
+      // Second pass: apply vertical flattening and compute global bounds
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+      counties = rawFeatures.map((f) => {
+        const ringsScaled = f.rings.map((ring) =>
+          ring.map((pt) => {
+            const y = (pt.lat - latMid) * latScaleFactor + latMid;
+            const x = pt.lon;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+            return { x, y };
+          })
+        );
+        return { en: f.en, ga: f.ga, rings: ringsScaled };
+      });
+
+      globalBounds = { minX, maxX, minY, maxY };
+    }
+
+    // ---- projection to canvas ----
+    function projectPoint(pt, bounds) {
+      const padding = 20;
+      const w = canvas.width;
+      const h = canvas.height;
+      const sx = (w - 2 * padding) / (bounds.maxX - bounds.minX);
+      const sy = (h - 2 * padding) / (bounds.maxY - bounds.minY);
+      const x = padding + (pt.x - bounds.minX) * sx;
+      // invert y-axis: geographical north = smaller y on screen
+      const y = h - (padding + (pt.y - bounds.minY) * sy);
+      return { x, y };
+    }
+
+    function boundsForCounty(county) {
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+      for (const ring of county.rings) {
+        for (const pt of ring) {
+          if (pt.x < minX) minX = pt.x;
+          if (pt.x > maxX) maxX = pt.x;
+          if (pt.y < minY) minY = pt.y;
+          if (pt.y > maxY) maxY = pt.y;
+        }
+      }
+      // small padding in bounds space
+      const padX = (maxX - minX) * 0.05;
+      const padY = (maxY - minY) * 0.05;
+      return {
+        minX: minX - padX,
+        maxX: maxX + padX,
+        minY: minY - padY,
+        maxY: maxY + padY
+      };
+    }
+
+    // ---- drawing ----
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawCountyOutline(index) {
+      const county = counties[index];
+      const bounds = boundsForCounty(county);
+      clearCanvas();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#000000';
+      ctx.beginPath();
+      let first = true;
+      for (const ring of county.rings) {
+        for (let i = 0; i < ring.length; i++) {
+          const p = projectPoint(ring[i], bounds);
+          if (i === 0 || first) {
+            ctx.moveTo(p.x, p.y);
+            first = false;
+          } else {
+            ctx.lineTo(p.x, p.y);
+          }
+        }
+      }
+      ctx.stroke();
+    }
+
+    function drawFullMapHighlight(index) {
+      clearCanvas();
+      ctx.lineWidth = 1;
+      // All counties light grey
+      ctx.strokeStyle = '#dddddd';
+      for (const county of counties) {
+        ctx.beginPath();
+        let first = true;
+        for (const ring of county.rings) {
+          for (let i = 0; i < ring.length; i++) {
+            const p = projectPoint(ring[i], globalBounds);
+            if (i === 0 || first) {
+              ctx.moveTo(p.x, p.y);
+              first = false;
+            } else {
+              ctx.lineTo(p.x, p.y);
+            }
+          }
+        }
+        ctx.stroke();
+      }
+      // Highlight current county in black, thicker
+      const county = counties[index];
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#000000';
+      ctx.beginPath();
+      let first = true;
+      for (const ring of county.rings) {
+        for (let i = 0; i < ring.length; i++) {
+          const p = projectPoint(ring[i], globalBounds);
+          if (i === 0 || first) {
+            ctx.moveTo(p.x, p.y);
+            first = false;
+          } else {
+            ctx.lineTo(p.x, p.y);
+          }
+        }
+      }
+      ctx.stroke();
+    }
+
+    // ---- log / UI updates ----
+    function buildLogText() {
+      if (!shown.length) return 'No answers yet.';
+      const lines = shown.map((entry, i) => {
+        const c = counties[entry.index];
+        const mark = entry.correct ? 'Correct' : 'X';
+        return `${String(i + 1).padStart(2, ' ')}. ${mark}  ${c.ga}  (${c.en})`;
+      });
+      return lines.join('\n');
+    }
+
+    function updateLog() {
+      logEl.textContent = buildLogText();
+    }
+
+    function updateStatus() {
+      const roundText =
+        pos < order.length
+          ? `Round ${pos + 1} of ${order.length}`
+          : 'Game over';
+      roundInfoEl.textContent = roundText;
+      const scoreText = `Score: ${score} / ${shown.length}`;
+      statusEl.textContent = lastMessage
+        ? `${scoreText} — ${lastMessage}`
+        : scoreText;
+    }
+
+    function resetHintsForRound() {
+      usedHint1 = false;
+      usedHint2 = false;
+      hint1Btn.disabled = false;
+      hint2Btn.disabled = false;
+      hintTextEl.textContent = '';
+    }
+
+    function nextRound() {
+      if (pos >= order.length) {
+        lastMessage = 'All counties have been shown.';
+        updateStatus();
+        answerInput.disabled = true;
+        enterBtn.disabled = true;
+        hint1Btn.disabled = true;
+        hint2Btn.disabled = true;
+        return;
+      }
+      currentIndex = order[pos];
+      resetHintsForRound();
+      lastMessage = '';
+      updateStatus();
+      answerInput.value = '';
+      answerInput.focus();
+      drawCountyOutline(currentIndex);
+      updateLog();
+    }
+
+    // ---- button handlers ----
+    function onEnter() {
+      if (currentIndex == null) return;
+      const county = counties[currentIndex];
+      const ga = county.ga || '';
+      const guess = answerInput.value.trim();
+      if (!guess) return;
+
+      const correct = guess === ga;
+      if (correct) {
+        score += 1;
+        lastMessage = `Correct: ${ga}`;
+      } else {
+        lastMessage = `Incorrect. Correct answer: ${ga}`;
+      }
+      shown.push({ index: currentIndex, correct, answer: guess });
+
+      pos += 1;
+      updateLog();
+      nextRound();
+    }
+
+    function onHint1() {
+      if (currentIndex == null || usedHint1) return;
+      drawFullMapHighlight(currentIndex);
+      usedHint1 = true;
+      hint1Btn.disabled = true;
+    }
+
+    function onHint2() {
+      if (currentIndex == null || usedHint2) return;
+      const county = counties[currentIndex];
+      const ga = county.ga || '';
+      hintTextEl.textContent = 'First 3 letters: ' + ga.slice(0, 3);
+      usedHint2 = true;
+      hint2Btn.disabled = true;
+    }
+
+    // ---- wire events ----
+    enterBtn.addEventListener('click', onEnter);
+    answerInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        onEnter();
+      }
+    });
+    hint1Btn.addEventListener('click', onHint1);
+    hint2Btn.addEventListener('click', onHint2);
+
+    // ---- boot ----
+    (async function init() {
+      try {
+        await loadData();
+        order = shuffle([...Array(counties.length).keys()]);
+        pos = 0;
+        score = 0;
+        shown = [];
+        lastMessage = '';
+        nextRound();
+      } catch (err) {
+        console.error(err);
+        roundInfoEl.textContent = 'Error loading data.';
+        statusEl.textContent = err.message || String(err);
+      }
+    })();
+  </script>
+</body>
+</html>
