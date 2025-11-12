@@ -125,10 +125,10 @@
       "Antrim":      ["Aontroim",        "‘Lone ridge’ (aon + droim)."],
       "Armagh":      ["Ard Mhacha",      "‘Height of Macha’ (goddess Macha)."],
       "Down":        ["An Dún",          "‘The fort’."] ,
-      "Fermanagh":   ["Fear Manach",     "‘Men/land of Manach’ (possibly monastic)."],
+      "Fermanagh":   ["Fear Manach",     "‘Men/land of Manach’."],
       "Tyrone":      ["Tír Eoghain",     "‘Land of Eoghan’."] ,
       "Derry":       ["Doire",           "‘Oak grove/wood’."] ,
-      "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’ (Vikings)."],
+      "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’."],
       "Monaghan":    ["Muineachán",      "‘Place of little thickets’."] ,
       "Cavan":       ["An Cabhán",       "‘The hollow/little hill’."] ,
       "Dublin":      ["Baile Átha Cliath","‘Town of the ford of hurdles’."] ,
@@ -142,7 +142,7 @@
       "Westmeath":   ["An Iarmhí",       "‘The western Meath’."] ,
       "Wexford":     ["Loch Garman",     "‘Garman’s lake’."] ,
       "Wicklow":     ["Cill Mhantáin",   "‘Church of Mantan’ (saint’s name)."] ,
-      "Carlow":      ["Ceatharlach",     "Possibly ‘place of cattle grazing’ / ‘four lakes’ (uncertain)."],
+      "Carlow":      ["Ceatharlach",     "Possibly ‘place of cattle grazing’ / ‘four lakes’."],
       "Clare":       ["An Clár",         "‘The board/plank’ (bridge) or ‘the plain’."] ,
       "Cork":        ["Corcaigh",        "‘Marsh/boggy place’."] ,
       "Kerry":       ["Ciarraí",         "‘People of Ciar’ (Ciarraige)."] ,
@@ -319,7 +319,7 @@
       if(!shown.length) return '<div class="log-item">No answers yet.</div>';
       return shown.map((entry,i)=>{
         const c = counties[entry.index];
-        const mark = entry.correct ? 'Correct' : 'X';
+        const mark = entry.correct ? '✅Correct: ' : '❌Incorrect: ';
         const et = (ETYM[c.en] && ETYM[c.en][1]) ? ` — ${esc(ETYM[c.en][1])}` : '';
         const line = `${String(i+1).padStart(2,' ')}. ${mark}  ${esc(c.ga)}  (${esc(c.en)})${et}`;
         const guess = esc(entry.answer);
@@ -444,3 +444,4 @@
   </script>
 </body>
 </html>
+
