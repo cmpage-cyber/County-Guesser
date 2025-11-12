@@ -357,21 +357,50 @@
       updateLog();
     }
 
-    // ---------- Handlers ----------
+
     function onEnter() {
       if (currentIndex == null) return;
       const c  = counties[currentIndex];
       const ga = c.ga || '';
       const guess = answerInput.value.trim();
       if (!guess) return;
+    
       const correct = (guess === ga);
-      if (correct) { score += 1; lastMessage = `Correct: ${ga}`; }
-      else         { lastMessage = `Incorrect. Correct answer: ${ga}`; }
+      if (correct) {
+        score += 1;
+        lastMessage = `✅ Correct: ${ga}`;
+      } else {
+        lastMessage = `❌ Incorrect. Correct answer: ${ga}`;
+      }
+    
       shown.push({ index: currentIndex, correct, answer: guess });
       pos += 1;
       updateLog();
-      nextRound();
+      updateInfo();     // show feedback immediately
+    
+      // Disable controls while showing feedback
+      answerInput.disabled = true;
+      enterBtn.disabled = true;
+      hint1Btn.disabled = true;
+      hint2Btn.disabled = true;
+    
+      // Wait 5 seconds before next question
+      setTimeout(() => {
+        answerInput.disabled = false;
+        enterBtn.disabled = false;
+        hint1Btn.disabled = false;
+        hint2Btn.disabled = false;
+        nextRound();
+      }, 5000);
     }
+
+
+
+
+
+    
+    // ---------- Handlers ----------
+    
     function onToggleMap() {
       showMapMode = !showMapMode;  // toggle
       renderMap();
@@ -404,3 +433,4 @@
   </script>
 </body>
 </html>
+
