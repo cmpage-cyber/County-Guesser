@@ -40,6 +40,25 @@
     button:disabled { opacity: 0.55; cursor: default; }
     #hintText { margin-top: 4px; font-size: 0.95rem; color: #444; }
 
+    .delay-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border: 1px solid #e2e6ea;
+      border-radius: 8px;
+      background: #fff;
+    }
+    .delay-group label { font-size: 0.9rem; color: #333; }
+    #delayRange { width: 140px; }
+    #delayNum {
+      width: 64px;
+      padding: 4px 6px;
+      font-size: 0.92rem;
+      border: 1px solid #cfd5da;
+      border-radius: 6px;
+    }
+
     /* Layout */
     .layout { display: flex; gap: 12px; align-items: flex-start; margin-top: 10px; }
     #mapContainer, #rightPanel {
@@ -72,15 +91,8 @@
       justify-content: space-between;
       gap: 6px;
     }
-    .log-line {
-      white-space: pre-wrap;
-      margin-right: 8px;
-    }
-    .guess {
-      display: none;
-      margin-top: 4px;
-      color: #333;
-    }
+    .log-line { white-space: pre-wrap; margin-right: 8px; }
+    .guess { display: none; margin-top: 4px; color: #333; }
     .guess b { color: #000; }
     .reveal {
       padding: 4px 8px;
@@ -107,6 +119,12 @@
     <button id="enterBtn">Enter</button>
     <button id="hint1Btn" title="Toggle full map highlight">Show map</button>
     <button id="hint2Btn" title="Toggle first 3 letters">Starting characters</button>
+
+    <div class="delay-group" title="Time to wait before the next question">
+      <label for="delayRange">Delay (s)</label>
+      <input id="delayRange" type="range" min="0" max="60" value="5" />
+      <input id="delayNum" type="number" min="0" max="60" value="5" />
+    </div>
   </div>
 
   <div class="layout">
@@ -122,38 +140,38 @@
   <script>
     // ---------- ETYMOLOGY ----------
     const ETYM = {
-      "Antrim":      ["Aontroim",        "‘Lone ridge’ (aon + droim)."],
-      "Armagh":      ["Ard Mhacha",      "‘Height of Macha’ (goddess Macha)."],
-      "Down":        ["An Dún",          "‘The fort’."] ,
-      "Fermanagh":   ["Fear Manach",     "‘Men/land of Manach’ (possibly monastic)."],
-      "Tyrone":      ["Tír Eoghain",     "‘Land of Eoghan’."] ,
-      "Derry":       ["Doire",           "‘Oak grove/wood’."] ,
-      "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’ (Vikings)."],
-      "Monaghan":    ["Muineachán",      "‘Place of little thickets’."] ,
-      "Cavan":       ["An Cabhán",       "‘The hollow/little hill’."] ,
-      "Dublin":      ["Baile Átha Cliath","‘Town of the ford of hurdles’."] ,
-      "Kildare":     ["Cill Dara",       "‘Church of the oak’."] ,
-      "Kilkenny":    ["Cill Chainnigh",  "‘Church of (St.) Canice’."] ,
-      "Laois":       ["Laois",           "From Uí Laoighis ‘people of Laoighseach’."] ,
-      "Longford":    ["An Longfort",     "‘The fortress/ship-fort’."] ,
-      "Louth":       ["Lú",              "Named after the god Lugh."] ,
-      "Meath":       ["An Mhí",          "From Mide ‘middle (kingdom)’."] ,
-      "Offaly":      ["Uíbh Fhailí",     "‘Descendants of Failge’."] ,
-      "Westmeath":   ["An Iarmhí",       "‘The western Meath’."] ,
-      "Wexford":     ["Loch Garman",     "‘Garman’s lake’."] ,
-      "Wicklow":     ["Cill Mhantáin",   "‘Church of Mantan’ (saint’s name)."] ,
-      "Carlow":      ["Ceatharlach",     "Possibly ‘place of cattle grazing’ / ‘four lakes’ (uncertain)."],
-      "Clare":       ["An Clár",         "‘The board/plank’ (bridge) or ‘the plain’."] ,
-      "Cork":        ["Corcaigh",        "‘Marsh/boggy place’."] ,
-      "Kerry":       ["Ciarraí",         "‘People of Ciar’ (Ciarraige)."] ,
-      "Limerick":    ["Luimneach",       "Possibly ‘bare place’ / floodplain."] ,
-      "Tipperary":   ["Tiobraid Árann",  "‘The well of the River Ara’."] ,
-      "Waterford":   ["Port Láirge",     "‘Harbour of the (river) Lairge’."] ,
-      "Galway":      ["Gaillimh",        "From River Gaillimh; often glossed ‘stony/rocky’."] ,
-      "Leitrim":     ["Liatroim",        "‘Grey ridge’ (liath + droim)."] ,
-      "Mayo":        ["Maigh Eo",        "‘Plain of the yew trees’."] ,
-      "Roscommon":   ["Ros Comáin",      "‘Comán’s wood’."] ,
-      "Sligo":       ["Sligeach",        "‘Shelly place/abounding in shells’."] ,
+      "Antrim": ["Aontroim","‘Lone ridge’ (aon + droim)."],
+      "Armagh": ["Ard Mhacha","‘Height of Macha’ (goddess Macha)."],
+      "Down": ["An Dún","‘The fort’."] ,
+      "Fermanagh": ["Fear Manach","‘Men/land of Manach’ (possibly monastic)."],
+      "Tyrone": ["Tír Eoghain","‘Land of Eoghan’."] ,
+      "Derry": ["Doire","‘Oak grove/wood’."] ,
+      "Donegal": ["Dún na nGall","‘Fort of the foreigners’ (Vikings)."],
+      "Monaghan": ["Muineachán","‘Place of little thickets’."] ,
+      "Cavan": ["An Cabhán","‘The hollow/little hill’."] ,
+      "Dublin": ["Baile Átha Cliath","‘Town of the ford of hurdles’."] ,
+      "Kildare": ["Cill Dara","‘Church of the oak’."] ,
+      "Kilkenny": ["Cill Chainnigh","‘Church of (St.) Canice’."] ,
+      "Laois": ["Laois","From Uí Laoighis ‘people of Laoighseach’."] ,
+      "Longford": ["An Longfort","‘The fortress/ship-fort’."] ,
+      "Louth": ["Lú","Named after the god Lugh."] ,
+      "Meath": ["An Mhí","From Mide ‘middle (kingdom)’."] ,
+      "Offaly": ["Uíbh Fhailí","‘Descendants of Failge’."] ,
+      "Westmeath": ["An Iarmhí","‘The western Meath’."] ,
+      "Wexford": ["Loch Garman","‘Garman’s lake’."] ,
+      "Wicklow": ["Cill Mhantáin","‘Church of Mantan’ (saint’s name)."] ,
+      "Carlow": ["Ceatharlach","Possibly ‘place of cattle grazing’ / ‘four lakes’ (uncertain)."],
+      "Clare": ["An Clár","‘The board/plank’ (bridge) or ‘the plain’."] ,
+      "Cork": ["Corcaigh","‘Marsh/boggy place’."] ,
+      "Kerry": ["Ciarraí","‘People of Ciar’ (Ciarraige)."] ,
+      "Limerick": ["Luimneach","Possibly ‘bare place’ / floodplain."] ,
+      "Tipperary": ["Tiobraid Árann","‘The well of the River Ara’."] ,
+      "Waterford": ["Port Láirge","‘Harbour of the (river) Lairge’."] ,
+      "Galway": ["Gaillimh","From River Gaillimh; often glossed ‘stony/rocky’."] ,
+      "Leitrim": ["Liatroim","‘Grey ridge’ (liath + droim)."] ,
+      "Mayo": ["Maigh Eo","‘Plain of the yew trees’."] ,
+      "Roscommon": ["Ros Comáin","‘Comán’s wood’."] ,
+      "Sligo": ["Sligeach","‘Shelly place/abounding in shells’."] ,
     };
 
     // ---------- DOM ----------
@@ -168,6 +186,8 @@
     const hintTextEl = document.getElementById('hintText');
     const logEl = document.getElementById('log');
     const countdownEl = document.getElementById('countdown');
+    const delayRange = document.getElementById('delayRange');
+    const delayNum   = document.getElementById('delayNum');
 
     // ---------- State ----------
     let counties = [];          // { en, ga, rings: [ [{x,y},...] , ...] }
@@ -189,6 +209,7 @@
 
     // ---------- Helpers ----------
     const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v|0));
 
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
@@ -263,7 +284,7 @@
         if (p.y<minY) minY=p.y; if (p.y>maxY) maxY=p.y;
       }
       const padX=(maxX-minX)*0.05, padY=(maxY-minY)*0.05;
-      return {minX:minX-padX,maxX:maxX+padX,minY:minY-padY,maxY:maxY+padY};
+      return {minX:minX-padX,maxX=maxX+padX,minY=minY-padY,maxY=maxY+padY};
     }
     function project(pt,b){
       const pad=20,w=canvas.width,h=canvas.height;
@@ -319,7 +340,7 @@
       if(!shown.length) return '<div class="log-item">No answers yet.</div>';
       return shown.map((entry,i)=>{
         const c = counties[entry.index];
-        const mark = entry.correct ? '✅Correct' : '❌Incorrect';
+        const mark = entry.correct ? '✅Correct: ' : '❌Incorrect: ';
         const et = (ETYM[c.en] && ETYM[c.en][1]) ? ` — ${esc(ETYM[c.en][1])}` : '';
         const line = `${String(i+1).padStart(2,' ')}. ${mark}  ${esc(c.ga)}  (${esc(c.en)})${et}`;
         const guess = esc(entry.answer);
@@ -355,6 +376,8 @@
       enterBtn.disabled   = !on;
       hint1Btn.disabled   = !on;
       hint2Btn.disabled   = !on;
+      delayRange.disabled = !on;
+      delayNum.disabled   = !on;
     }
     function nextRound(){
       countdownEl.textContent = '';
@@ -368,9 +391,11 @@
       renderMap(); updateLog();
     }
 
-    // ---------- Countdown (5s) ----------
+    // ---------- Countdown using user delay (0–60) ----------
     function startCountdownAndGo(){
-      let t = 5;
+      let t = clamp(delayNum.value, 0, 60);
+      if (t === 0) { nextRound(); return; }
+
       countdownEl.textContent = `Next question in ${t}…`;
       setControlsEnabled(false);
       if(countdownTimer) clearInterval(countdownTimer);
@@ -399,7 +424,6 @@
       lastMessage = correct ? `✅ Correct: ${ga}` : `❌ Incorrect. Correct answer: ${ga}`;
       if(correct) score += 1;
 
-      // stable id for this row
       const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
       shown.push({ id, index: currentIndex, correct, answer: guess });
 
@@ -420,6 +444,15 @@
       const visible = block.style.display === 'block';
       block.style.display = visible ? 'none' : 'block';
       btn.textContent = visible ? 'Show my response' : 'Hide my response';
+    });
+
+    // Delay control sync (slider <-> number)
+    delayRange.addEventListener('input', () => {
+      delayNum.value = clamp(delayRange.value, 0, 60);
+    });
+    delayNum.addEventListener('input', () => {
+      delayNum.value = clamp(delayNum.value, 0, 60);
+      delayRange.value = delayNum.value;
     });
 
     // ---------- Wire & boot ----------
@@ -444,4 +477,3 @@
   </script>
 </body>
 </html>
-
