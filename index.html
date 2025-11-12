@@ -41,7 +41,7 @@
     #hintText { margin-top: 4px; font-size: 0.95rem; color: #444; }
 
     /* Layout */
-    .layout { display: flex; gap: 12px; align-items: flex-start; margin-top: 10px; flex-wrap: wrap; }
+    .layout { display: flex; gap: 12px; align-items: flex-start; margin-top: 10px; }
     #mapContainer, #rightPanel {
       background: #fff; border: 1px solid #e4e7ea; border-radius: 10px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.06);
@@ -125,10 +125,10 @@
       "Antrim":      ["Aontroim",        "‘Lone ridge’ (aon + droim)."],
       "Armagh":      ["Ard Mhacha",      "‘Height of Macha’ (goddess Macha)."],
       "Down":        ["An Dún",          "‘The fort’."] ,
-      "Fermanagh":   ["Fear Manach",     "‘Men/land of Manach’."] ,
+      "Fermanagh":   ["Fear Manach",     "‘Men/land of Manach’."],
       "Tyrone":      ["Tír Eoghain",     "‘Land of Eoghan’."] ,
       "Derry":       ["Doire",           "‘Oak grove/wood’."] ,
-      "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’."] ,
+      "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’."],
       "Monaghan":    ["Muineachán",      "‘Place of little thickets’."] ,
       "Cavan":       ["An Cabhán",       "‘The hollow/little hill’."] ,
       "Dublin":      ["Baile Átha Cliath","‘Town of the ford of hurdles’."] ,
@@ -142,7 +142,7 @@
       "Westmeath":   ["An Iarmhí",       "‘The western Meath’."] ,
       "Wexford":     ["Loch Garman",     "‘Garman’s lake’."] ,
       "Wicklow":     ["Cill Mhantáin",   "‘Church of Mantan’ (saint’s name)."] ,
-      "Carlow":      ["Ceatharlach",     "Possibly ‘place of cattle grazing’ / ‘four lakes’."] ,
+      "Carlow":      ["Ceatharlach",     "Possibly ‘place of cattle grazing’ / ‘four lakes’."],
       "Clare":       ["An Clár",         "‘The board/plank’ (bridge) or ‘the plain’."] ,
       "Cork":        ["Corcaigh",        "‘Marsh/boggy place’."] ,
       "Kerry":       ["Ciarraí",         "‘People of Ciar’ (Ciarraige)."] ,
@@ -218,7 +218,7 @@
 
     // ---------- Load GeoJSON + pre-scale ----------
     async function loadData() {
-      const resp = await fetch('irish_counties_simplified.geojson?v=2025-11-12', { cache: 'no-store' });
+      const resp = await fetch('irish_counties_simplified.geojson');
       if (!resp.ok) throw new Error('Failed to load GeoJSON');
       const gj = await resp.json();
 
@@ -263,7 +263,7 @@
         if (p.y<minY) minY=p.y; if (p.y>maxY) maxY=p.y;
       }
       const padX=(maxX-minX)*0.05, padY=(maxY-minY)*0.05;
-      return {minX:minX-padX,maxX=maxX+padX,minY=minY-padY,maxY=maxY+padY};
+      return {minX:minX-padX,maxX:maxX+padX,minY:minY-padY,maxY:maxY+padY};
     }
     function project(pt,b){
       const pad=20,w=canvas.width,h=canvas.height;
@@ -396,7 +396,7 @@
       if(!guess) return;
 
       const correct = (guess === ga);
-      lastMessage = correct ? `✅Correct: ${ga}` : `❌Incorrect. Correct answer: ${ga}`;
+      lastMessage = correct ? `✅Correct: ${ga}` : `❌Incorrect: . Correct answer: ${ga}`;
       if(correct) score += 1;
 
       // stable id for this row
@@ -419,7 +419,7 @@
       if(!block) return;
       const visible = block.style.display === 'block';
       block.style.display = visible ? 'none' : 'block';
-      btn.textContent = visible ? 'Show guess' : 'Hide guess';
+      btn.textContent = visible ? 'Show response' : 'Hide response';
     });
 
     // ---------- Wire & boot ----------
