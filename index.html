@@ -435,11 +435,12 @@
 
     // ---------- Handlers ----------
 
+    // ---------- Handlers ----------
     function onEnter(){
       if (currentIndex == null) return;
       const c   = counties[currentIndex];
       const ga  = c.ga || '';
-      const en  = c.en || '';               // <- English name
+      const en  = c.en || '';               // English name
       const guess = answerInput.value.trim();
       if (!guess) return;
     
@@ -459,15 +460,16 @@
       updateInfo();
       startCountdownAndGo();
     }
-
-
-
-
-
-
-
     
-
+    function onToggleMap() {
+      showMapMode = !showMapMode;
+      renderMap();
+    }
+    
+    function onToggleFirst3() {
+      showFirst3Letters(!showFirst3);
+    }
+    
     // reveal/hide guess (event delegation)
     logEl.addEventListener('click', (e)=>{
       const btn = e.target.closest('.reveal');
@@ -479,6 +481,7 @@
       block.style.display = visible ? 'none' : 'block';
       btn.textContent = visible ? 'Show guess' : 'Hide guess';
     });
+
 
     // ---------- Wire & boot ----------
     enterBtn.addEventListener('click', onEnter);
@@ -502,6 +505,7 @@
   </script>
 </body>
 </html>
+
 
 
 
