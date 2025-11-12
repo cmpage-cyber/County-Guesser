@@ -41,7 +41,7 @@
     #hintText { margin-top: 4px; font-size: 0.95rem; color: #444; }
 
     /* Layout */
-    .layout { display: flex; gap: 12px; align-items: flex-start; margin-top: 10px; }
+    .layout { display: flex; gap: 12px; align-items: flex-start; margin-top: 10px; flex-wrap: wrap; }
     #mapContainer, #rightPanel {
       background: #fff; border: 1px solid #e4e7ea; border-radius: 10px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.06);
@@ -122,38 +122,38 @@
   <script>
     // ---------- ETYMOLOGY ----------
     const ETYM = {
-      "Antrim":      ["Aontroim",        "‘Lone ridge’ (aon + droim)."],
-      "Armagh":      ["Ard Mhacha",      "‘Height of Macha’ (goddess Macha)."],
-      "Down":        ["An Dún",          "‘The fort’."] ,
-      "Fermanagh":   ["Fear Manach",     "‘Men/land of Manach’."],
-      "Tyrone":      ["Tír Eoghain",     "‘Land of Eoghan’."] ,
-      "Derry":       ["Doire",           "‘Oak grove/wood’."] ,
-      "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’."],
-      "Monaghan":    ["Muineachán",      "‘Place of little thickets’."] ,
-      "Cavan":       ["An Cabhán",       "‘The hollow/little hill’."] ,
-      "Dublin":      ["Baile Átha Cliath","‘Town of the ford of hurdles’."] ,
-      "Kildare":     ["Cill Dara",       "‘Church of the oak’."] ,
-      "Kilkenny":    ["Cill Chainnigh",  "‘Church of (St.) Canice’."] ,
-      "Laois":       ["Laois",           "From Uí Laoighis ‘people of Laoighseach’."] ,
-      "Longford":    ["An Longfort",     "‘The fortress/ship-fort’."] ,
-      "Louth":       ["Lú",              "Named after the god Lugh."] ,
-      "Meath":       ["An Mhí",          "From Mide ‘middle (kingdom)’."] ,
-      "Offaly":      ["Uíbh Fhailí",     "‘Descendants of Failge’."] ,
-      "Westmeath":   ["An Iarmhí",       "‘The western Meath’."] ,
-      "Wexford":     ["Loch Garman",     "‘Garman’s lake’."] ,
-      "Wicklow":     ["Cill Mhantáin",   "‘Church of Mantan’ (saint’s name)."] ,
-      "Carlow":      ["Ceatharlach",     "Possibly ‘place of cattle grazing’ / ‘four lakes’."],
-      "Clare":       ["An Clár",         "‘The board/plank’ (bridge) or ‘the plain’."] ,
-      "Cork":        ["Corcaigh",        "‘Marsh/boggy place’."] ,
-      "Kerry":       ["Ciarraí",         "‘People of Ciar’ (Ciarraige)."] ,
-      "Limerick":    ["Luimneach",       "Possibly ‘bare place’ / floodplain."] ,
-      "Tipperary":   ["Tiobraid Árann",  "‘The well of the River Ara’."] ,
-      "Waterford":   ["Port Láirge",     "‘Harbour of the (river) Lairge’."] ,
-      "Galway":      ["Gaillimh",        "From River Gaillimh; often glossed ‘stony/rocky’."] ,
-      "Leitrim":     ["Liatroim",        "‘Grey ridge’ (liath + droim)."] ,
-      "Mayo":        ["Maigh Eo",        "‘Plain of the yew trees’."] ,
-      "Roscommon":   ["Ros Comáin",      "‘Comán’s wood’."] ,
-      "Sligo":       ["Sligeach",        "‘Shelly place/abounding in shells’."] ,
+      "Antrim":["Aontroim","‘Lone ridge’ (aon + droim)."],
+      "Armagh":["Ard Mhacha","‘Height of Macha’ (goddess Macha)."],
+      "Down":["An Dún","‘The fort’."] ,
+      "Fermanagh":["Fear Manach","‘Men/land of Manach’."] ,
+      "Tyrone":["Tír Eoghain","‘Land of Eoghan’."] ,
+      "Derry":["Doire","‘Oak grove/wood’."] ,
+      "Donegal":["Dún na nGall","‘Fort of the foreigners’."] ,
+      "Monaghan":["Muineachán","‘Place of little thickets’."] ,
+      "Cavan":["An Cabhán","‘The hollow/little hill’."] ,
+      "Dublin":["Baile Átha Cliath","‘Town of the ford of hurdles’."] ,
+      "Kildare":["Cill Dara","‘Church of the oak’."] ,
+      "Kilkenny":["Cill Chainnigh","‘Church of (St.) Canice’."] ,
+      "Laois":["Laois","From Uí Laoighis ‘people of Laoighseach’."] ,
+      "Longford":["An Longfort","‘The fortress/ship-fort’."] ,
+      "Louth":["Lú","Named after the god Lugh."] ,
+      "Meath":["An Mhí","From Mide ‘middle (kingdom)’."] ,
+      "Offaly":["Uíbh Fhailí","‘Descendants of Failge’."] ,
+      "Westmeath":["An Iarmhí","‘The western Meath’."] ,
+      "Wexford":["Loch Garman","‘Garman’s lake’."] ,
+      "Wicklow":["Cill Mhantáin","‘Church of Mantan’ (saint’s name)."] ,
+      "Carlow":["Ceatharlach","Possibly ‘place of cattle grazing’ / ‘four lakes’."] ,
+      "Clare":["An Clár","‘The board/plank’ (bridge) or ‘the plain’."] ,
+      "Cork":["Corcaigh","‘Marsh/boggy place’."] ,
+      "Kerry":["Ciarraí","‘People of Ciar’ (Ciarraige)."] ,
+      "Limerick":["Luimneach","Possibly ‘bare place’ / floodplain."] ,
+      "Tipperary":["Tiobraid Árann","‘The well of the River Ara’."] ,
+      "Waterford":["Port Láirge","‘Harbour of the (river) Lairge’."] ,
+      "Galway":["Gaillimh","From River Gaillimh; often glossed ‘stony/rocky’."] ,
+      "Leitrim":["Liatroim","‘Grey ridge’ (liath + droim)."] ,
+      "Mayo":["Maigh Eo","‘Plain of the yew trees’."] ,
+      "Roscommon":["Ros Comáin","‘Comán’s wood’."] ,
+      "Sligo":["Sligeach","‘Shelly place/abounding in shells’."] ,
     };
 
     // ---------- DOM ----------
@@ -216,11 +216,24 @@
       return out;
     }
 
+    // --- tiny util to fetch with no-store and throw on 404/500
+    async function fetchJSON(url) {
+      const r = await fetch(url, { cache: 'no-store' });
+      if (!r.ok) throw new Error(`${r.status} ${r.statusText} for ${url}`);
+      return r.json();
+    }
+
     // ---------- Load GeoJSON + pre-scale ----------
     async function loadData() {
-      const resp = await fetch('irish_counties_simplified.geojson');
-      if (!resp.ok) throw new Error('Failed to load GeoJSON');
-      const gj = await resp.json();
+      // Try simplified file first, then full file as a fallback (GitHub Pages mismatches happen)
+      const v = 'v=2025-11-12-1';
+      let gj = null;
+      try {
+        gj = await fetchJSON(`irish_counties_simplified.geojson?${v}`);
+      } catch (e1) {
+        console.warn('Simplified GeoJSON failed, trying full file…', e1);
+        gj = await fetchJSON(`irish_counties.geojson?${v}`);
+      }
 
       const raw = [];
       let latMin = Infinity, latMax = -Infinity;
@@ -253,6 +266,7 @@
         return { en:f.en, ga:f.ga, rings:ringsScaled };
       });
       globalBounds = {minX,maxX,minY,maxY};
+      console.log('Loaded counties:', counties.length);
     }
 
     // ---------- Bounds + projection ----------
@@ -263,7 +277,7 @@
         if (p.y<minY) minY=p.y; if (p.y>maxY) maxY=p.y;
       }
       const padX=(maxX-minX)*0.05, padY=(maxY-minY)*0.05;
-      return {minX:minX-padX,maxX:maxX+padX,minY:minY-padY,maxY:maxY+padY};
+      return {minX:minX-padX,maxX:maxX+padX,minY=minY-padY,maxY=maxY+padY};
     }
     function project(pt,b){
       const pad=20,w=canvas.width,h=canvas.height;
@@ -396,7 +410,7 @@
       if(!guess) return;
 
       const correct = (guess === ga);
-      lastMessage = correct ? `✅Correct: ${ga}` : `❌Incorrect: . Correct answer: ${ga}`;
+      lastMessage = correct ? `✅Correct: ${ga}` : `❌Incorrect. Correct answer: ${ga}`;
       if(correct) score += 1;
 
       // stable id for this row
@@ -419,7 +433,7 @@
       if(!block) return;
       const visible = block.style.display === 'block';
       block.style.display = visible ? 'none' : 'block';
-      btn.textContent = visible ? 'Show response' : 'Hide response';
+      btn.textContent = visible ? 'Show guess' : 'Hide guess';
     });
 
     // ---------- Wire & boot ----------
