@@ -434,27 +434,39 @@
     }
 
     // ---------- Handlers ----------
+
     function onEnter(){
-      if(currentIndex==null) return;
-      const c  = counties[currentIndex];
-      const ga = c.ga || '';
+      if (currentIndex == null) return;
+      const c   = counties[currentIndex];
+      const ga  = c.ga || '';
+      const en  = c.en || '';               // <- English name
       const guess = answerInput.value.trim();
-      if(!guess) return;
-
+      if (!guess) return;
+    
       const correct = (guess === ga);
-      lastMessage = correct ? `✅Correct: ${ga}` : `❌Incorrect. Correct answer: ${ga} (${en})`;
-      if(correct) score += 1;
-
-      // stable id for this row
+      if (correct) {
+        score += 1;
+        lastMessage = `✅Correct: ${ga} (${en})`;
+      } else {
+        lastMessage = `❌Incorrect. Correct answer: ${ga} (${en})`;
+      }
+    
       const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
       shown.push({ id, index: currentIndex, correct, answer: guess });
-
+    
       pos += 1;
-      updateLog(); updateInfo();
+      updateLog();
+      updateInfo();
       startCountdownAndGo();
     }
-    function onToggleMap(){ showMapMode = !showMapMode; renderMap(); }
-    function onToggleFirst3(){ showFirst3Letters(!showFirst3); }
+
+
+
+
+
+
+
+    
 
     // reveal/hide guess (event delegation)
     logEl.addEventListener('click', (e)=>{
