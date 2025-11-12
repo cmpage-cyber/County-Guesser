@@ -40,8 +40,8 @@
     button:disabled { opacity: 0.55; cursor: default; }
     #hintText { margin-top: 4px; font-size: 0.95rem; color: #444; }
 
-    /* Layout */
-    .layout { display: flex; gap: 12px; align-items: flex-start; margin-top: 10px; }
+    /* Layout (desktop/tablet default: side-by-side) */
+    .layout { display: flex; gap: 12px; align-items: flex-start; margin-top: 10px; flex-wrap: wrap; }
     #mapContainer, #rightPanel {
       background: #fff; border: 1px solid #e4e7ea; border-radius: 10px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.06);
@@ -90,6 +90,23 @@
       background: #fff;
     }
     .reveal:hover { background: #f2f4f7; }
+
+    /* Mobile tweaks: stack map + log, shrink canvas so page isn't “zoomed in” */
+    @media (max-width: 768px) {
+      .layout {
+        flex-direction: column;
+      }
+      #mapContainer,
+      #rightPanel {
+        width: 100%;
+        max-width: none;
+      }
+      canvas {
+        width: 100%;
+        height: auto;
+        max-width: 520px;   /* so it doesn't blow up on big screens */
+      }
+    }
   </style>
 </head>
 <body>
@@ -125,10 +142,10 @@
       "Antrim":      ["Aontroim",        "‘Lone ridge’ (aon + droim)."],
       "Armagh":      ["Ard Mhacha",      "‘Height of Macha’ (goddess Macha)."],
       "Down":        ["An Dún",          "‘The fort’."] ,
-      "Fermanagh":   ["Fear Manach",     "‘Men/land of Manach’."],
+      "Fermanagh":   ["Fear Manach",     "‘Men/land of Manach’."] ,
       "Tyrone":      ["Tír Eoghain",     "‘Land of Eoghan’."] ,
       "Derry":       ["Doire",           "‘Oak grove/wood’."] ,
-      "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’."],
+      "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’."] ,
       "Monaghan":    ["Muineachán",      "‘Place of little thickets’."] ,
       "Cavan":       ["An Cabhán",       "‘The hollow/little hill’."] ,
       "Dublin":      ["Baile Átha Cliath","‘Town of the ford of hurdles’."] ,
@@ -142,7 +159,7 @@
       "Westmeath":   ["An Iarmhí",       "‘The western Meath’."] ,
       "Wexford":     ["Loch Garman",     "‘Garman’s lake’."] ,
       "Wicklow":     ["Cill Mhantáin",   "‘Church of Mantan’ (saint’s name)."] ,
-      "Carlow":      ["Ceatharlach",     "Possibly ‘place of cattle grazing’ / ‘four lakes’."],
+      "Carlow":      ["Ceatharlach",     "Possibly ‘place of cattle grazing’ / ‘four lakes’."] ,
       "Clare":       ["An Clár",         "‘The board/plank’ (bridge) or ‘the plain’."] ,
       "Cork":        ["Corcaigh",        "‘Marsh/boggy place’."] ,
       "Kerry":       ["Ciarraí",         "‘People of Ciar’ (Ciarraige)."] ,
@@ -218,7 +235,8 @@
 
     // ---------- Load GeoJSON + pre-scale ----------
     async function loadData() {
-      const resp = await fetch('irish_counties_simplified.geojson');
+      // add a tiny cache-buster + no-store to avoid stale/mobile caches
+      const resp = await fetch('irish_counties_simplified.geojson?v=2', { cache: 'no-store' });
       if (!resp.ok) throw new Error('Failed to load GeoJSON');
       const gj = await resp.json();
 
@@ -253,6 +271,7 @@
         return { en:f.en, ga:f.ga, rings:ringsScaled };
       });
       globalBounds = {minX,maxX,minY,maxY};
+      console.log('Loaded counties:', counties.length);
     }
 
     // ---------- Bounds + projection ----------
@@ -396,7 +415,7 @@
       if(!guess) return;
 
       const correct = (guess === ga);
-      lastMessage = correct ? `✅Correct: ${ga}` : `❌Incorrect: . Correct answer: ${ga}`;
+      lastMessage = correct ? `✅Correct: ${ga}` : `❌Incorrect. Correct answer: ${ga}`;
       if(correct) score += 1;
 
       // stable id for this row
@@ -419,7 +438,7 @@
       if(!block) return;
       const visible = block.style.display === 'block';
       block.style.display = visible ? 'none' : 'block';
-      btn.textContent = visible ? 'Show response' : 'Hide response';
+      btn.textContent = visible ? 'Show guess' : 'Hide guess';
     });
 
     // ---------- Wire & boot ----------
@@ -436,9 +455,9 @@
         setControlsEnabled(true);
         nextRound();
       }catch(err){
+        console.error(err);
         roundInfoEl.textContent='Error loading data.';
         statusEl.textContent = err.message || String(err);
-        console.error(err);
       }
     })();
   </script>
