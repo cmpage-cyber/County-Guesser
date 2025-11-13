@@ -91,6 +91,11 @@
     }
     .reveal:hover { background: #f2f4f7; }
 
+    /* Reset / Play again buttons */
+    #playAgainBtn {
+      display: none;   /* shown only at game over */
+    }
+
     /* Mobile tweaks: stack map + log, shrink canvas so page isn't “zoomed in” */
     @media (max-width: 768px) {
       .layout {
@@ -120,11 +125,12 @@
   <div id="hintText"></div>
 
   <div id="controls">
-   
     <input id="answer" type="text" placeholder="Type name as Gaeilge (case-sensitive)" style="width: 280px;" />
     <button id="enterBtn">Enter</button>
     <button id="hint1Btn" title="Toggle full map highlight">Show map</button>
     <button id="hint2Btn" title="Toggle first 3 characters (including space)">Starting characters</button>
+    <button id="resetBtn" title="Reset quiz and start again">Reset</button>
+    <button id="playAgainBtn" title="Play another full round">Play again</button>
   </div>
 
   <div class="layout">
@@ -143,7 +149,7 @@
       "Antrim":      ["Aontroim",        "‘Lone ridge’ (aon + droim)."],
       "Armagh":      ["Ard Mhacha",      "‘Height of Macha’ (goddess Macha)."],
       "Down":        ["An Dún",          "‘The fort’."] ,
-      "Fermanagh":   ["Fir Manach",     "‘Men/land of Manach’."] ,
+      "Fermanagh":   ["Fir Manach",      "‘Men/land of Manach’."] ,
       "Tyrone":      ["Tír Eoghain",     "‘Land of Eoghan’."] ,
       "Derry":       ["Doire",           "‘Oak grove/wood’."] ,
       "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’."] ,
@@ -181,6 +187,8 @@
     const enterBtn = document.getElementById('enterBtn');
     const hint1Btn = document.getElementById('hint1Btn');
     const hint2Btn = document.getElementById('hint2Btn');
+    const resetBtn = document.getElementById('resetBtn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
     const roundInfoEl = document.getElementById('roundInfo');
     const statusEl = document.getElementById('status');
     const hintTextEl = document.getElementById('hintText');
@@ -196,7 +204,6 @@
     let currentIndex = null;
 
     let globalBounds = null;
-    const latScaleFactor = 1.0;
 
     // hint toggles
     let showMapMode = false;
@@ -236,7 +243,6 @@
 
     // ---------- Load GeoJSON + pre-scale ----------
     async function loadData() {
-      // add a tiny cache-buster + no-store to avoid stale/mobile caches
       const resp = await fetch('irish_counties_simplified.geojson?v=2', { cache: 'no-store' });
       if (!resp.ok) throw new Error('Failed to load GeoJSON');
       const gj = await resp.json();
@@ -257,39 +263,25 @@
       }
       if (!raw.length) throw new Error('No usable counties in GeoJSON');
 
-
-
       const latMid = 0.5 * (latMin + latMax);
-      // cos of mid-latitude in radians – used to squash east–west distances
       const cosLatMid = Math.cos(latMid * Math.PI / 180);
-      
+
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
       counties = raw.map(f => {
         const ringsScaled = f.rings.map(ring =>
           ring.map(pt => {
-            // keep latitude as-is (no extra vertical squish)
             const y = pt.lat;
-            // compress longitude so degrees E–W aren’t over-stretched
             const x = pt.lon * cosLatMid;
-      
             if (x < minX) minX = x;
             if (x > maxX) maxX = x;
             if (y < minY) minY = y;
             if (y > maxY) maxY = y;
-      
             return { x, y };
           })
         );
         return { en: f.en, ga: f.ga, rings: ringsScaled };
       });
       globalBounds = { minX, maxX, minY, maxY };
-
-
-
-
-
-      
-      globalBounds = {minX,maxX,minY,maxY};
       console.log('Loaded counties:', counties.length);
     }
 
@@ -308,35 +300,22 @@
       const padding = 20;
       const w = canvas.width;
       const h = canvas.height;
-    
+
       const spanX = b.maxX - b.minX;
       const spanY = b.maxY - b.minY;
-    
-      // ONE scale for both axes → preserves aspect ratio
+
       const scale = Math.min(
         (w - 2 * padding) / spanX,
         (h - 2 * padding) / spanY
       );
-    
-      // centre within the canvas
+
       const offsetX = (w - scale * spanX) / 2;
       const offsetY = (h - scale * spanY) / 2;
-    
+
       const x = offsetX + (pt.x - b.minX) * scale;
       const y = h - (offsetY + (pt.y - b.minY) * scale); // invert Y
       return { x, y };
     }
-
-
-
-
-
-
-
-
-
-
-    
 
     // ---------- Drawing ----------
     function clearCanvas(){
@@ -419,12 +398,17 @@
       enterBtn.disabled   = !on;
       hint1Btn.disabled   = !on;
       hint2Btn.disabled   = !on;
+      // resetBtn & playAgainBtn handled separately
     }
+
     function nextRound(){
       countdownEl.textContent = '';
       if(pos>=order.length){
         lastMessage='All counties have been shown.';
-        updateInfo(); setControlsEnabled(false); return;
+        updateInfo();
+        setControlsEnabled(false);
+        playAgainBtn.style.display = 'inline-block';
+        return;
       }
       currentIndex = order[pos];
       resetHintToggles(); lastMessage=''; updateInfo();
@@ -444,6 +428,7 @@
           countdownEl.textContent = `Next question in ${t}…`;
         } else {
           clearInterval(countdownTimer);
+          countdownTimer = null;
           countdownEl.textContent = '';
           setControlsEnabled(true);
           nextRound();
@@ -451,17 +436,35 @@
       }, 1000);
     }
 
-    // ---------- Handlers ----------
+    // ---------- Game reset / start ----------
+    function startNewGame() {
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      countdownEl.textContent = '';
+      order = shuffle([...Array(counties.length).keys()]);
+      pos = 0;
+      score = 0;
+      shown = [];
+      lastMessage = '';
+      currentIndex = null;
+      playAgainBtn.style.display = 'none';
+      setControlsEnabled(true);
+      updateLog();
+      updateInfo();
+      nextRound();
+    }
 
     // ---------- Handlers ----------
     function onEnter(){
       if (currentIndex == null) return;
       const c   = counties[currentIndex];
       const ga  = c.ga || '';
-      const en  = c.en || '';               // English name
+      const en  = c.en || '';
       const guess = answerInput.value.trim();
       if (!guess) return;
-    
+
       const correct = (guess === ga);
       if (correct) {
         score += 1;
@@ -469,25 +472,35 @@
       } else {
         lastMessage = `❌Incorrect. Correct answer: ${ga} (${en})`;
       }
-    
+
       const id = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
       shown.push({ id, index: currentIndex, correct, answer: guess });
-    
+
       pos += 1;
       updateLog();
       updateInfo();
       startCountdownAndGo();
     }
-    
+
     function onToggleMap() {
       showMapMode = !showMapMode;
       renderMap();
     }
-    
+
     function onToggleFirst3() {
       showFirst3Letters(!showFirst3);
     }
-    
+
+    function onResetClick() {
+      if (!counties.length) return;
+      startNewGame();
+    }
+
+    function onPlayAgainClick() {
+      if (!counties.length) return;
+      startNewGame();
+    }
+
     // reveal/hide guess (event delegation)
     logEl.addEventListener('click', (e)=>{
       const btn = e.target.closest('.reveal');
@@ -500,20 +513,18 @@
       btn.textContent = visible ? 'Show guess' : 'Hide guess';
     });
 
-
     // ---------- Wire & boot ----------
     enterBtn.addEventListener('click', onEnter);
     answerInput.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); onEnter(); }});
     hint1Btn.addEventListener('click', onToggleMap);
     hint2Btn.addEventListener('click', onToggleFirst3);
+    resetBtn.addEventListener('click', onResetClick);
+    playAgainBtn.addEventListener('click', onPlayAgainClick);
 
     (async function init(){
       try{
         await loadData();
-        order = shuffle([...Array(counties.length).keys()]);
-        pos=0; score=0; shown=[]; lastMessage='';
-        setControlsEnabled(true);
-        nextRound();
+        startNewGame();
       }catch(err){
         console.error(err);
         roundInfoEl.textContent='Error loading data.';
@@ -523,11 +534,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
