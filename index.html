@@ -221,6 +221,7 @@
       <button id="enterBtn">Enter</button>
       <button id="hint1Btn">Show map</button>
       <button id="hint2Btn">Starting characters</button>
+      <!-- old Reset button removed; reset now lives in the top banner -->
     </div>
 
     <div class="layout">
@@ -273,6 +274,7 @@
     let score = 0;
     let currentIndex = null;
     let globalBounds = null;    // bounds for full map drawing
+    let latScaleFactor = 1.0;   // flatten factor for Ireland
 
     let usedHint1 = false;
     let usedHint2 = false;
@@ -319,12 +321,13 @@
       return out;
     }
 
-    // ---- load and prepare GeoJSON (unsquished projection) ----
+    // ---- load and prepare GeoJSON ----
     async function loadData() {
       const resp = await fetch('irish_counties_simplified.geojson');
       if (!resp.ok) throw new Error('Failed to load GeoJSON');
       const data = await resp.json();
 
+      // First pass: collect unscaled coords + global lat min/max
       const rawFeatures = [];
       let latMin = Infinity, latMax = -Infinity;
 
@@ -347,28 +350,34 @@
 
       if (!rawFeatures.length) throw new Error('No usable counties in GeoJSON');
 
-      const latMid = 0.5 * (latMin + latMax);
-      const cosLatMid = Math.cos(latMid * Math.PI / 180);
+  
 
+      const latMid = 0.5 * (latMin + latMax);
+      // Second pass: apply vertical flattening and compute global bounds
       let minX = Infinity, maxX = -Infinity;
       let minY = Infinity, maxY = -Infinity;
-
       counties = rawFeatures.map((f) => {
         const ringsScaled = f.rings.map((ring) =>
           ring.map((pt) => {
-            const y = pt.lat;                 // keep latitude
-            const x = pt.lon * cosLatMid;     // compress longitude
-
+            const y = (pt.lat - latMid) * latScaleFactor + latMid;
+            const x = pt.lon;
             if (x < minX) minX = x;
             if (x > maxX) maxX = x;
             if (y < minY) minY = y;
             if (y > maxY) maxY = y;
-
             return { x, y };
           })
         );
         return { en: f.en, ga: f.ga, rings: ringsScaled };
       });
+
+
+
+
+
+
+
+      
 
       globalBounds = { minX, maxX, minY, maxY };
     }
@@ -511,6 +520,7 @@
       hint1Btn.disabled = false;
       hint2Btn.disabled = false;
       hintTextEl.textContent = '';
+      // reset button labels for toggles
       hint1Btn.textContent = 'Show map';
       hint2Btn.textContent = 'Starting characters';
     }
@@ -559,8 +569,9 @@
       nextRound();
     }
 
-    function toggleMapHint() {
+    function onHint1() {
       if (currentIndex == null) return;
+      // toggle behaviour
       if (!usedHint1) {
         drawFullMapHighlight(currentIndex);
         usedHint1 = true;
@@ -572,11 +583,12 @@
       }
     }
 
-    function toggleStartingCharsHint() {
+    function onHint2() {
       if (currentIndex == null) return;
+      const county = counties[currentIndex];
+      const ga = county.ga || '';
+      // toggle behaviour
       if (!usedHint2) {
-        const county = counties[currentIndex];
-        const ga = county.ga || '';
         hintTextEl.textContent = 'Starting characters: ' + ga.slice(0, 3);
         usedHint2 = true;
         hint2Btn.textContent = 'Hide starting characters';
@@ -616,8 +628,8 @@
         onEnter();
       }
     });
-    hint1Btn.addEventListener('click', toggleMapHint);
-    hint2Btn.addEventListener('click', toggleStartingCharsHint);
+    hint1Btn.addEventListener('click', onHint1);
+    hint2Btn.addEventListener('click', onHint2);
 
     // top bar events
     homeBtn.addEventListener('click', () => {
@@ -639,3 +651,4 @@
   </script>
 </body>
 </html>
+
