@@ -321,46 +321,38 @@
       return out;
     }
 
-    // ---- load and prepare GeoJSON ----
+    
+    // ---------- Load GeoJSON + pre-scale ----------
     async function loadData() {
-      const resp = await fetch('irish_counties_simplified.geojson');
+      const resp = await fetch('irish_counties_simplified.geojson?v=2', { cache: 'no-store' });
       if (!resp.ok) throw new Error('Failed to load GeoJSON');
-      const data = await resp.json();
+      const gj = await resp.json();
 
-      // First pass: collect unscaled coords + global lat min/max
-      const rawFeatures = [];
+      const raw = [];
       let latMin = Infinity, latMax = -Infinity;
-
-      for (const feat of data.features || []) {
+      for (const feat of gj.features || []) {
         const props = feat.properties || {};
         const en = getNameEn(props);
         const ga = getNameGa(props);
-        const rings = ringsFromGeometry(feat.geometry || {});
+        const rings = ringsFromGeometry(feat.geometry);
         if (!rings.length) continue;
-
-        rawFeatures.push({ en, ga, rings });
-
-        for (const ring of rings) {
-          for (const pt of ring) {
-            if (pt.lat < latMin) latMin = pt.lat;
-            if (pt.lat > latMax) latMax = pt.lat;
-          }
+        raw.push({ en, ga, rings });
+        for (const ring of rings) for (const pt of ring) {
+          if (pt.lat < latMin) latMin = pt.lat;
+          if (pt.lat > latMax) latMax = pt.lat;
         }
       }
-
-      if (!rawFeatures.length) throw new Error('No usable counties in GeoJSON');
-
-  
+      if (!raw.length) throw new Error('No usable counties in GeoJSON');
 
       const latMid = 0.5 * (latMin + latMax);
-      // Second pass: apply vertical flattening and compute global bounds
-      let minX = Infinity, maxX = -Infinity;
-      let minY = Infinity, maxY = -Infinity;
-      counties = rawFeatures.map((f) => {
-        const ringsScaled = f.rings.map((ring) =>
-          ring.map((pt) => {
-            const y = (pt.lat - latMid) * latScaleFactor + latMid;
-            const x = pt.lon;
+      const cosLatMid = Math.cos(latMid * Math.PI / 180);
+
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      counties = raw.map(f => {
+        const ringsScaled = f.rings.map(ring =>
+          ring.map(pt => {
+            const y = pt.lat;
+            const x = pt.lon * cosLatMid;
             if (x < minX) minX = x;
             if (x > maxX) maxX = x;
             if (y < minY) minY = y;
@@ -370,16 +362,8 @@
         );
         return { en: f.en, ga: f.ga, rings: ringsScaled };
       });
-
-
-
-
-
-
-
-      
-
       globalBounds = { minX, maxX, minY, maxY };
+      console.log('Loaded counties:', counties.length);
     }
 
     // ---- projection to canvas ----
@@ -651,4 +635,5 @@
   </script>
 </body>
 </html>
+
 
