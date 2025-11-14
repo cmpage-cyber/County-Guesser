@@ -336,7 +336,6 @@
       "Mayo":        ["Maigh Eo",        "‘Plain of yew’."],
       "Roscommon":   ["Ros Comáin",      "‘Comán’s wood’."],
       "Sligo":       ["Sligeach",        "‘Shelly place’."],
-
     };
 
     // ---- basic DOM refs ----
@@ -372,6 +371,14 @@
     let usedHint2 = false;
     let lastMessage = '';
     let countdownTimer = null;
+
+    // NEW: total hint usage (per game)
+    let totalHint1Used = 0; // Show map
+    let totalHint2Used = 0; // Starting characters
+
+    // NEW: per-round flags so each hint is only counted once per round
+    let countedHint1ThisRound = false;
+    let countedHint2ThisRound = false;
 
     const esc = (s) =>
       String(s).replace(/[&<>"]/g, c =>
@@ -603,9 +610,16 @@
           : 'Game over';
       roundInfoEl.textContent = roundText;
       const scoreText = `Score: ${score} / ${shown.length}`;
+
+      // NEW: show hint usage summary when game is over
+      let hintSummary = '';
+      if (pos >= order.length) {
+        hintSummary = ` | Hints used — Map: ${totalHint1Used}, Starting characters: ${totalHint2Used}`;
+      }
+
       statusEl.textContent = lastMessage
-        ? `${scoreText} — ${lastMessage}`
-        : scoreText;
+        ? `${scoreText}${hintSummary} — ${lastMessage}`
+        : scoreText + hintSummary;
     }
 
     function resetHintsForRound() {
@@ -616,6 +630,10 @@
       hintTextEl.textContent = '';
       hint1Btn.textContent = 'Show map';
       hint2Btn.textContent = 'Starting characters';
+
+      // NEW: reset per-round counted flags
+      countedHint1ThisRound = false;
+      countedHint2ThisRound = false;
     }
 
     function nextRound() {
@@ -698,6 +716,13 @@
 
     function onHint1() {
       if (currentIndex == null) return;
+
+      // NEW: only count once per round
+      if (!countedHint1ThisRound) {
+        totalHint1Used += 1;
+        countedHint1ThisRound = true;
+      }
+
       if (!usedHint1) {
         drawFullMapHighlight(currentIndex);
         usedHint1 = true;
@@ -713,6 +738,13 @@
       if (currentIndex == null) return;
       const county = counties[currentIndex];
       const ga = county.ga || '';
+
+      // NEW: only count once per round
+      if (!countedHint2ThisRound) {
+        totalHint2Used += 1;
+        countedHint2ThisRound = true;
+      }
+
       if (!usedHint2) {
         hintTextEl.textContent = 'Starting characters: ' + ga.slice(0, 3);
         usedHint2 = true;
@@ -742,6 +774,13 @@
         shown = [];
         lastMessage = '';
         currentIndex = null;
+
+        // NEW: reset total hint counters for a new game
+        totalHint1Used = 0;
+        totalHint2Used = 0;
+        countedHint1ThisRound = false;
+        countedHint2ThisRound = false;
+
         updateLog();
         nextRound();
       } catch (err) {
@@ -790,16 +829,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
