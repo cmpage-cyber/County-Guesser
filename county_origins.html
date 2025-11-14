@@ -13,18 +13,19 @@
     body {
       margin: 0;
       padding: 0;
-      background: #f4f4f4;
+      background: #1b1b1b;
+      color: #f4f4f4;
     }
 
-    /* --- top banner (same style as other quizzes) --- */
+    /* --- top banner --- */
     .top-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0.4rem 0.75rem;
-      background: #1b8b3d;
+      background: #146b28;
       color: #fff;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
       position: sticky;
       top: 0;
       z-index: 50;
@@ -46,7 +47,7 @@
       height: 2rem;
       border-radius: 999px;
       border: none;
-      background: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.10);
       color: #fff;
       display: inline-flex;
       align-items: center;
@@ -55,12 +56,12 @@
       font-size: 1.1rem;
     }
     .icon-btn:hover {
-      background: rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.22);
     }
 
     /* --- page layout --- */
     .page {
-      padding: 0.9rem 1rem 1.5rem;
+      padding: 0.9rem 1rem 1.6rem;
       max-width: 720px;
       margin: 0 auto;
     }
@@ -71,7 +72,7 @@
     .subtitle {
       margin: 0 0 1rem 0;
       font-size: 0.95rem;
-      color: #444;
+      color: #ccc;
     }
     #roundInfo {
       font-weight: 600;
@@ -83,9 +84,9 @@
     }
 
     .card {
-      background: #fff;
+      background: #262626;
       border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.6);
       padding: 1rem 1rem 1.2rem;
     }
 
@@ -97,16 +98,16 @@
       display: block;
     }
     #countyName .en {
-      font-weight: 600;
+      font-weight: 700;
     }
     #countyName .ga {
       font-style: italic;
-      color: #155724;
+      color: #7cff9c;
     }
     #prompt {
       margin: 0.5rem 0 0.9rem;
       font-size: 0.95rem;
-      color: #222;
+      color: #eaeaea;
     }
 
     .options {
@@ -116,23 +117,24 @@
     }
     .option-btn {
       border-radius: 8px;
-      border: 1px solid #ccc;
-      background: #f7f7f7;
+      border: 1px solid #444;
+      background: #3a3a3a;
       padding: 0.6rem 0.7rem;
       font-size: 0.95rem;
       text-align: left;
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s, transform 0.05s;
+      color: #f4f4f4;
     }
     .option-btn:hover:not(:disabled) {
-      background: #ececec;
+      background: #444;
     }
     .option-btn:active:not(:disabled) {
       transform: scale(0.99);
     }
     .option-btn:disabled {
       cursor: default;
-      opacity: 0.95;
+      opacity: 0.96;
     }
     .option-btn.correct {
       background: #28a745;
@@ -152,14 +154,14 @@
     #countdown {
       margin-top: 0.35rem;
       font-size: 0.9rem;
-      color: #555;
+      color: #cccccc;
     }
 
     /* Reset confirmation overlay */
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.35);
+      background: rgba(0,0,0,0.45);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -169,12 +171,13 @@
       display: none;
     }
     .dialog {
-      background: #fff;
+      background: #262626;
       border-radius: 10px;
       padding: 1rem 1.2rem 0.9rem;
       max-width: 340px;
       width: 100%;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      color: #f4f4f4;
     }
     .dialog p {
       margin: 0 0 0.75rem 0;
@@ -189,7 +192,7 @@
       min-width: 70px;
       padding: 0.4rem 0.7rem;
       border-radius: 6px;
-      border: 1px solid #ccc;
+      border: 1px solid #555;
       cursor: pointer;
       font-size: 0.9rem;
     }
@@ -251,40 +254,40 @@
   </div>
 
   <script>
-    // --- Data: English, Irish, origin ---
+    // --- Data: English, Irish, origin (no quote marks) ---
     const COUNTY_DATA = [
-      { en: "Antrim",     ga: "Aontroim",         meaning: "‘Lone ridge’ (aon + droim)" },
-      { en: "Armagh",     ga: "Ard Mhacha",       meaning: "‘Height of Macha’" },
-      { en: "Down",       ga: "An Dún",           meaning: "‘The fort’" },
-      { en: "Fermanagh",  ga: "Fir Manach",       meaning: "‘Men/land of Manach’" },
-      { en: "Tyrone",     ga: "Tír Eoghain",      meaning: "‘Land of Eoghan’" },
-      { en: "Derry",      ga: "Doire",            meaning: "‘Oak grove’" },
-      { en: "Donegal",    ga: "Dún na nGall",     meaning: "‘Fort of the foreigners’" },
-      { en: "Monaghan",   ga: "Muineachán",       meaning: "‘Place of little thickets’" },
-      { en: "Cavan",      ga: "An Cabhán",        meaning: "‘The hollow/little hill’" },
-      { en: "Dublin",     ga: "Baile Átha Cliath",meaning: "‘Town of the ford of hurdles’" },
-      { en: "Kildare",    ga: "Cill Dara",        meaning: "‘Church of the oak’" },
-      { en: "Kilkenny",   ga: "Cill Chainnigh",   meaning: "‘Church of Canice’" },
-      { en: "Laois",      ga: "Laois",            meaning: "Uí Laoighis origin" },
-      { en: "Longford",   ga: "An Longfort",      meaning: "‘The fortress/ship-fort’" },
-      { en: "Louth",      ga: "Lú",               meaning: "Named after Lugh" },
-      { en: "Meath",      ga: "An Mhí",           meaning: "From Mide ‘middle’" },
-      { en: "Offaly",     ga: "Uíbh Fhailí",      meaning: "‘Descendants of Failge’" },
-      { en: "Westmeath",  ga: "An Iarmhí",        meaning: "‘Western Meath’" },
-      { en: "Wexford",    ga: "Loch Garman",      meaning: "‘Garman’s lake’" },
-      { en: "Wicklow",    ga: "Cill Mhantáin",    meaning: "‘Church of Mantan’" },
-      { en: "Carlow",     ga: "Ceatharlach",      meaning: "Poss. ‘cattle place’ / ‘four lakes’" },
-      { en: "Clare",      ga: "An Clár",          meaning: "‘Board/plank’ or ‘plain’" },
-      { en: "Cork",       ga: "Corcaigh",         meaning: "‘Marsh’" },
-      { en: "Kerry",      ga: "Ciarraí",          meaning: "‘People of Ciar’" },
-      { en: "Limerick",   ga: "Luimneach",        meaning: "Poss. ‘bare/floodplain’" },
-      { en: "Tipperary",  ga: "Tiobraid Árann",   meaning: "‘Well of the Ara’" },
-      { en: "Waterford",  ga: "Port Láirge",      meaning: "‘Harbour of Lairge’" },
-      { en: "Galway",     ga: "Gaillimh",         meaning: "From the river; ‘stony/rocky’" },
-      { en: "Leitrim",    ga: "Liatroim",         meaning: "‘Grey ridge’" },
-      { en: "Mayo",       ga: "Maigh Eo",         meaning: "‘Plain of yews’" },
-      { en: "Roscommon",  ga: "Ros Comáin",       meaning: "‘Comán’s wood’" },
-      { en: "Sligo",      ga: "Sligeach",         meaning: "‘Shelly place’" }
+      { en: "Antrim",     ga: "Aontroim",          meaning: "Lone ridge (aon + droim)" },
+      { en: "Armagh",     ga: "Ard Mhacha",        meaning: "Height of Macha" },
+      { en: "Down",       ga: "An Dún",            meaning: "The fort" },
+      { en: "Fermanagh",  ga: "Fir Manach",        meaning: "Men or land of Manach" },
+      { en: "Tyrone",     ga: "Tír Eoghain",       meaning: "Land of Eoghan" },
+      { en: "Derry",      ga: "Doire",             meaning: "Oak grove" },
+      { en: "Donegal",    ga: "Dún na nGall",      meaning: "Fort of the foreigners" },
+      { en: "Monaghan",   ga: "Muineachán",        meaning: "Place of little thickets" },
+      { en: "Cavan",      ga: "An Cabhán",         meaning: "The hollow or little hill" },
+      { en: "Dublin",     ga: "Baile Átha Cliath", meaning: "Town of the ford of hurdles" },
+      { en: "Kildare",    ga: "Cill Dara",         meaning: "Church of the oak" },
+      { en: "Kilkenny",   ga: "Cill Chainnigh",    meaning: "Church of Canice" },
+      { en: "Laois",      ga: "Laois",             meaning: "Territory of Uí Laoighis" },
+      { en: "Longford",   ga: "An Longfort",       meaning: "The fortress or ship-fort" },
+      { en: "Louth",      ga: "Lú",                meaning: "Place associated with the god Lugh" },
+      { en: "Meath",      ga: "An Mhí",            meaning: "From Mide meaning middle" },
+      { en: "Offaly",     ga: "Uíbh Fhailí",       meaning: "Territory of the descendants of Failge" },
+      { en: "Westmeath",  ga: "An Iarmhí",         meaning: "Western Meath" },
+      { en: "Wexford",    ga: "Loch Garman",       meaning: "Garman’s lake" },
+      { en: "Wicklow",    ga: "Cill Mhantáin",     meaning: "Church of Mantan" },
+      { en: "Carlow",     ga: "Ceatharlach",       meaning: "Possibly cattle place or four lakes" },
+      { en: "Clare",      ga: "An Clár",           meaning: "Board or plank or plain" },
+      { en: "Cork",       ga: "Corcaigh",          meaning: "Marsh" },
+      { en: "Kerry",      ga: "Ciarraí",           meaning: "People of Ciar" },
+      { en: "Limerick",   ga: "Luimneach",         meaning: "Possibly bare land or floodplain" },
+      { en: "Tipperary",  ga: "Tiobraid Árann",    meaning: "Well of the Ara" },
+      { en: "Waterford",  ga: "Port Láirge",       meaning: "Harbour of Lairge" },
+      { en: "Galway",     ga: "Gaillimh",          meaning: "From the river Gaillimh, stony or rocky" },
+      { en: "Leitrim",    ga: "Liatroim",          meaning: "Grey ridge" },
+      { en: "Mayo",       ga: "Maigh Eo",          meaning: "Plain of yews" },
+      { en: "Roscommon",  ga: "Ros Comáin",        meaning: "Comán’s wood" },
+      { en: "Sligo",      ga: "Sligeach",          meaning: "Shelly place" }
     ];
 
     const TOTAL_ROUNDS = COUNTY_DATA.length;
