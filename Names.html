@@ -614,7 +614,7 @@
       // NEW: show hint usage summary when game is over
       let hintSummary = '';
       if (pos >= order.length) {
-        hintSummary = ` | Hints used — Map: ${totalHint1Used}, Starting characters: ${totalHint2Used}`;
+        hintSummary = ` | Hints used|: Show map: ${totalHint1Used}, Starting characters: ${totalHint2Used}`;
       }
 
       statusEl.textContent = lastMessage
@@ -640,7 +640,6 @@
       countdownEl.textContent = '';
 
       if (pos >= order.length) {
-        lastMessage = 'All counties have been shown.';
         updateStatus();
         answerInput.disabled = true;
         enterBtn.disabled = true;
@@ -829,4 +828,5 @@
   </script>
 </body>
 </html>
+
 
