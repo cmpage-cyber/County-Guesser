@@ -8,23 +8,23 @@
     :root {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #f4f4f4;
-      color: #111;
     }
     body {
       margin: 0;
       padding: 0;
       background: #f4f4f4;
+      color: #111;
     }
 
-    /* --- top banner --- */
+    /* --- top banner (same style as Name That County) --- */
     .top-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0.4rem 0.75rem;
-      background: #146b28;
+      background: #1b8b3d;
       color: #fff;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
       position: sticky;
       top: 0;
       z-index: 50;
@@ -46,7 +46,7 @@
       height: 2rem;
       border-radius: 999px;
       border: none;
-      background: rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.15);
       color: #fff;
       display: inline-flex;
       align-items: center;
@@ -55,112 +55,117 @@
       font-size: 1.1rem;
     }
     .icon-btn:hover {
-      background: rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.25);
     }
 
-    /* --- page layout --- */
     .page {
-      padding: 0.9rem 1rem 1.6rem;
-      max-width: 720px;
+      padding: 0.9rem 1rem 1.5rem;
+      max-width: 900px;
       margin: 0 auto;
     }
+
     h1 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.4rem;
+      margin: 0 0 0.25rem 0;
+      font-size: 1.45rem;
     }
     .subtitle {
-      margin: 0 0 1rem 0;
+      margin: 0 0 0.9rem 0;
       font-size: 0.95rem;
-      color: #ccc;
+      color: #777;
     }
-    #roundInfo {
-      font-weight: 600;
+
+    .meta-line {
+      font-size: 0.95rem;
       margin-bottom: 0.25rem;
     }
-    #status {
-      font-size: 0.9rem;
-      margin-bottom: 0.5rem;
+    .meta-line strong {
+      font-weight: 600;
     }
 
+    /* --- quiz card --- */
     .card {
-      background: #262626;
+      margin-top: 0.9rem;
+      background: #ffffff;
       border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.6);
       padding: 1rem 1rem 1.2rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.18);
     }
 
-    #countyName {
-      margin: 0;
-      font-size: 1.2rem;
-    }
-    #countyName span {
-      display: block;
-    }
-    #countyName .en {
+    .county-en {
+      font-size: 1.4rem;
       font-weight: 700;
+      margin: 0 0 0.15rem 0;
     }
-    #countyName .ga {
+    .county-ga {
+      margin: 0 0 0.75rem 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0f7a2b;
       font-style: italic;
-      color: #7cff9c;
     }
-    #prompt {
-      margin: 0.5rem 0 0.9rem;
-      font-size: 0.95rem;
-      color: #eaeaea;
+
+    .question-text {
+      font-size: 1rem;
+      margin-bottom: 0.85rem;
     }
 
     .options {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      margin-bottom: 0.75rem;
     }
+
     .option-btn {
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: #3a3a3a;
-      padding: 0.6rem 0.7rem;
-      font-size: 0.95rem;
+      width: 100%;
+      padding: 0.8rem 0.9rem;
       text-align: left;
+      border-radius: 8px;
+      border: 1px solid #cccccc;
+      background: #f5f5f5;
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, transform 0.05s;
-      color: #f4f4f4;
+      font-size: 0.98rem;
+      line-height: 1.3;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
     }
     .option-btn:hover:not(:disabled) {
-      background: #444;
+      background: #e9e9e9;
     }
     .option-btn:active:not(:disabled) {
-      transform: scale(0.99);
+      transform: translateY(1px);
     }
     .option-btn:disabled {
       cursor: default;
-      opacity: 0.96;
+      opacity: 0.95;
     }
+
     .option-btn.correct {
       background: #28a745;
       border-color: #1e7e34;
       color: #fff;
     }
+
     .option-btn.incorrect {
       background: #dc3545;
       border-color: #b21f2d;
       color: #fff;
     }
 
-    #feedback {
-      margin-top: 0.75rem;
+    .status {
       font-size: 0.95rem;
-    }
-    #countdown {
-      margin-top: 0.35rem;
-      font-size: 0.9rem;
-      color: #cccccc;
+      margin-top: 0.3rem;
+      color: #333;
     }
 
-    /* Reset confirmation overlay */
+    .status .highlight {
+      font-weight: 600;
+    }
+
+    /* --- reset confirmation overlay --- */
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0,0,0,0.35);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -170,13 +175,12 @@
       display: none;
     }
     .dialog {
-      background: #262626;
+      background: #fff;
       border-radius: 10px;
       padding: 1rem 1.2rem 0.9rem;
       max-width: 340px;
       width: 100%;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-      color: #f4f4f4;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
     }
     .dialog p {
       margin: 0 0 0.75rem 0;
@@ -185,13 +189,14 @@
     .dialog-buttons {
       display: flex;
       justify-content: flex-end;
-      gap: 0.5rem;
+      gap: 0.6rem;
     }
     .dialog-buttons button {
       min-width: 70px;
-      padding: 0.4rem 0.7rem;
-      border-radius: 6px;
-      border: 1px solid #555;
+      padding: 0.35rem 0.7rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background: #f6f6f6;
       cursor: pointer;
       font-size: 0.9rem;
     }
@@ -206,7 +211,7 @@
   </style>
 </head>
 <body>
-  <!-- Top banner -->
+  <!-- Top banner with Home + Reset icon -->
   <header class="top-bar">
     <div class="top-left">
       <button class="icon-btn" id="homeBtn" title="Back to home">🏠</button>
@@ -217,29 +222,32 @@
     </div>
   </header>
 
-  <div class="page">
+  <main class="page">
     <h1>County Origins Quiz</h1>
     <p class="subtitle">
       For each county, choose the correct origin or meaning of the name.
     </p>
 
-    <div id="roundInfo"></div>
-    <div id="status"></div>
+    <p class="meta-line"><strong id="roundInfo">Round 1 of 32</strong></p>
+    <p class="meta-line" id="scoreInfo">Score: 0 / 0</p>
 
-    <div class="card">
-      <h2 id="countyName">
-        <!-- English + Irish appear here -->
-      </h2>
-      <p id="prompt">What is the origin of this county name?</p>
+    <section class="card">
+      <h2 class="county-en" id="countyEn">County</h2>
+      <p class="county-ga" id="countyGa">County (Gaeilge)</p>
 
-      <div id="options" class="options">
-        <!-- answer buttons created by JS -->
+      <p class="question-text">
+        What is the origin of this county name?
+      </p>
+
+      <div class="options">
+        <button class="option-btn" id="opt0"></button>
+        <button class="option-btn" id="opt1"></button>
+        <button class="option-btn" id="opt2"></button>
       </div>
 
-      <div id="feedback"></div>
-      <div id="countdown"></div>
-    </div>
-  </div>
+      <div class="status" id="status"></div>
+    </section>
+  </main>
 
   <!-- Reset confirmation dialog -->
   <div id="resetOverlay" class="overlay hidden">
@@ -253,222 +261,229 @@
   </div>
 
   <script>
-    // --- Data: English, Irish, origin (no quote marks) ---
-    const COUNTY_DATA = [
-      { en: "Antrim",     ga: "Aontroim",          meaning: "Lone ridge (aon + droim)" },
-      { en: "Armagh",     ga: "Ard Mhacha",        meaning: "Height of Macha" },
-      { en: "Down",       ga: "An Dún",            meaning: "The fort" },
-      { en: "Fermanagh",  ga: "Fir Manach",        meaning: "Men or land of Manach" },
-      { en: "Tyrone",     ga: "Tír Eoghain",       meaning: "Land of Eoghan" },
-      { en: "Derry",      ga: "Doire",             meaning: "Oak grove" },
-      { en: "Donegal",    ga: "Dún na nGall",      meaning: "Fort of the foreigners" },
-      { en: "Monaghan",   ga: "Muineachán",        meaning: "Place of little thickets" },
-      { en: "Cavan",      ga: "An Cabhán",         meaning: "The hollow or little hill" },
-      { en: "Dublin",     ga: "Baile Átha Cliath", meaning: "Town of the ford of hurdles" },
-      { en: "Kildare",    ga: "Cill Dara",         meaning: "Church of the oak" },
-      { en: "Kilkenny",   ga: "Cill Chainnigh",    meaning: "Church of Canice" },
-      { en: "Laois",      ga: "Laois",             meaning: "Territory of Uí Laoighis" },
-      { en: "Longford",   ga: "An Longfort",       meaning: "The fortress or ship-fort" },
-      { en: "Louth",      ga: "Lú",                meaning: "Place associated with the god Lugh" },
-      { en: "Meath",      ga: "An Mhí",            meaning: "From Mide meaning middle" },
-      { en: "Offaly",     ga: "Uíbh Fhailí",       meaning: "Territory of the descendants of Failge" },
-      { en: "Westmeath",  ga: "An Iarmhí",         meaning: "Western Meath" },
-      { en: "Wexford",    ga: "Loch Garman",       meaning: "Garman’s lake" },
-      { en: "Wicklow",    ga: "Cill Mhantáin",     meaning: "Church of Mantan" },
-      { en: "Carlow",     ga: "Ceatharlach",       meaning: "Cattle place or four lakes" },
-      { en: "Clare",      ga: "An Clár",           meaning: "Board or plank or plain" },
-      { en: "Cork",       ga: "Corcaigh",          meaning: "Marsh" },
-      { en: "Kerry",      ga: "Ciarraí",           meaning: "People of Ciar" },
-      { en: "Limerick",   ga: "Luimneach",         meaning: "Bare land or floodplain" },
-      { en: "Tipperary",  ga: "Tiobraid Árann",    meaning: "Well of the Ara" },
-      { en: "Waterford",  ga: "Port Láirge",       meaning: "Harbour of Lairge" },
-      { en: "Galway",     ga: "Gaillimh",          meaning: "From the river Gaillimh, stony or rocky" },
-      { en: "Leitrim",    ga: "Liatroim",          meaning: "Grey ridge" },
-      { en: "Mayo",       ga: "Maigh Eo",          meaning: "Plain of yews" },
-      { en: "Roscommon",  ga: "Ros Comáin",        meaning: "Comán’s wood" },
-      { en: "Sligo",      ga: "Sligeach",          meaning: "Shelly place" }
+    // ----- data -----
+    const countyOrigins = [
+      { en: "Antrim",     ga: "Aontroim",          origin: "Lone ridge (aon + droim)" },
+      { en: "Armagh",     ga: "Ard Mhacha",        origin: "Height of Macha" },
+      { en: "Down",       ga: "An Dún",            origin: "The fort" },
+      { en: "Fermanagh",  ga: "Fir Manach",        origin: "Men or land of Manach" },
+      { en: "Tyrone",     ga: "Tír Eoghain",       origin: "Land of Eoghan" },
+      { en: "Derry",      ga: "Doire",             origin: "Oak grove" },
+      { en: "Donegal",    ga: "Dún na nGall",      origin: "Fort of the foreigners" },
+      { en: "Monaghan",   ga: "Muineachán",        origin: "Place of little thickets" },
+      { en: "Cavan",      ga: "An Cabhán",         origin: "The hollow or little hill" },
+      { en: "Dublin",     ga: "Baile Átha Cliath", origin: "Town of the ford of hurdles" },
+      { en: "Kildare",    ga: "Cill Dara",         origin: "Church of the oak" },
+      { en: "Kilkenny",   ga: "Cill Chainnigh",    origin: "Church of Canice" },
+      { en: "Laois",      ga: "Laois",             origin: "From Uí Laoighis territory" },
+      { en: "Longford",   ga: "An Longfort",       origin: "The fortress or ship-fort" },
+      { en: "Louth",      ga: "Lú",                origin: "Named after the god Lugh" },
+      { en: "Meath",      ga: "An Mhí",            origin: "From Mide meaning middle" },
+      { en: "Offaly",     ga: "Uíbh Fhailí",       origin: "Descendants of Failge" },
+      { en: "Westmeath",  ga: "An Iarmhí",         origin: "Western Meath" },
+      { en: "Wexford",    ga: "Loch Garman",       origin: "Garman’s lake" },
+      { en: "Wicklow",    ga: "Cill Mhantáin",     origin: "Church of Mantan" },
+      { en: "Carlow",     ga: "Ceatharlach",       origin: "Possibly cattle place or four lakes" },
+      { en: "Clare",      ga: "An Clár",           origin: "Board or plank, or plain" },
+      { en: "Cork",       ga: "Corcaigh",          origin: "Marsh" },
+      { en: "Kerry",      ga: "Ciarraí",           origin: "People of Ciar" },
+      { en: "Limerick",   ga: "Luimneach",         origin: "Possibly bare land or floodplain" },
+      { en: "Tipperary",  ga: "Tiobraid Árann",    origin: "Well of the Ara" },
+      { en: "Waterford",  ga: "Port Láirge",       origin: "Harbour of Lairge" },
+      { en: "Galway",     ga: "Gaillimh",          origin: "From the river; stony or rocky" },
+      { en: "Leitrim",    ga: "Liatroim",          origin: "Grey ridge" },
+      { en: "Mayo",       ga: "Maigh Eo",          origin: "Plain of yews" },
+      { en: "Roscommon",  ga: "Ros Comáin",        origin: "Comán’s wood" },
+      { en: "Sligo",      ga: "Sligeach",          origin: "Shelly place" }
     ];
 
-    const TOTAL_ROUNDS = COUNTY_DATA.length;
-
-    // --- DOM references ---
-    const homeBtn      = document.getElementById('homeBtn');
-    const resetBtn     = document.getElementById('resetBtn');
-    const resetOverlay = document.getElementById('resetOverlay');
-    const resetYesBtn  = document.getElementById('resetYes');
-    const resetNoBtn   = document.getElementById('resetNo');
-
+    // ----- DOM refs -----
+    const countyEnEl   = document.getElementById('countyEn');
+    const countyGaEl   = document.getElementById('countyGa');
     const roundInfoEl  = document.getElementById('roundInfo');
+    const scoreInfoEl  = document.getElementById('scoreInfo');
     const statusEl     = document.getElementById('status');
-    const countyNameEl = document.getElementById('countyName');
-    const optionsEl    = document.getElementById('options');
-    const feedbackEl   = document.getElementById('feedback');
-    const countdownEl  = document.getElementById('countdown');
 
-    // --- game state ---
+    const optionButtons = [
+      document.getElementById('opt0'),
+      document.getElementById('opt1'),
+      document.getElementById('opt2')
+    ];
+
+    const homeBtn       = document.getElementById('homeBtn');
+    const resetBtn      = document.getElementById('resetBtn');
+    const resetOverlay  = document.getElementById('resetOverlay');
+    const resetYesBtn   = document.getElementById('resetYes');
+    const resetNoBtn    = document.getElementById('resetNo');
+
+    // ----- quiz state -----
     let order = [];
-    let currentRound = 0;    // 0..TOTAL_ROUNDS-1
+    let currentPos = 0;
     let score = 0;
-    let roundsPlayed = 0;
-    let lastMessage = '';
-    let answeredCurrent = false;
+    let answeredCount = 0;
+    let acceptingAnswers = true;
+    let currentCorrectIndex = null;   // which button index is correct for current round
+    let countdownTimer = null;
+    const totalRounds = countyOrigins.length; // 32
+    const countdownSeconds = 5;
 
-    let countdownInterval = null;
-    let countdownRemaining = 0;
-
-    // --- helpers ---
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
+        [array[i], array[j]] = [array[j], array[i]];
       }
-      return arr;
+      return array;
     }
 
-    function clearCountdown() {
-      if (countdownInterval) {
-        clearInterval(countdownInterval);
-        countdownInterval = null;
-      }
+    function buildOrder() {
+      order = shuffle([...Array(countyOrigins.length).keys()]);
     }
 
-    function updateRoundInfo() {
-      if (currentRound < TOTAL_ROUNDS) {
-        roundInfoEl.textContent = `Round ${currentRound + 1} of ${TOTAL_ROUNDS}`;
-      } else {
-        roundInfoEl.textContent = `Finished – ${TOTAL_ROUNDS} counties`;
-      }
+    function updateMeta() {
+      const roundText = currentPos < totalRounds
+        ? `Round ${currentPos + 1} of ${totalRounds}`
+        : `Round ${totalRounds} of ${totalRounds}`;
+      roundInfoEl.textContent = roundText;
+      scoreInfoEl.textContent = `Score: ${score} / ${answeredCount}`;
     }
 
-    function updateStatus() {
-      const baseScore = `Score: ${score} / ${roundsPlayed}`;
-      statusEl.textContent = lastMessage ? `${baseScore} — ${lastMessage}` : baseScore;
-    }
-
-    function setButtonsEnabled(enabled) {
-      const buttons = optionsEl.querySelectorAll('button.option-btn');
-      buttons.forEach(btn => {
-        btn.disabled = !enabled;
+    function clearOptionClasses() {
+      optionButtons.forEach(btn => {
+        btn.classList.remove('correct', 'incorrect');
       });
     }
 
-    // --- round setup ---
-    function loadRound() {
-      clearCountdown();
-      feedbackEl.textContent = '';
-      countdownEl.textContent = '';
-      optionsEl.innerHTML = '';
-      answeredCurrent = false;
+    function setOptionsDisabled(disabled) {
+      optionButtons.forEach(btn => {
+        btn.disabled = disabled;
+      });
+    }
 
-      if (currentRound >= TOTAL_ROUNDS) {
-        // finished
-        lastMessage = 'Quiz complete!';
-        updateRoundInfo();
-        updateStatus();
+    // Pick two random incorrect origins
+    function getDistractors(correctIndex) {
+      const indices = [];
+      for (let i = 0; i < countyOrigins.length; i++) {
+        if (i !== correctIndex) indices.push(i);
+      }
+      shuffle(indices);
+      return indices.slice(0, 2);
+    }
+
+    function loadRound() {
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+
+      if (currentPos >= totalRounds) {
+        // Game finished
+        updateMeta();
+        statusEl.innerHTML =
+          `Quiz complete! <span class="highlight">Final score: ${score} / ${answeredCount}</span>.`;
+        setOptionsDisabled(true);
         return;
       }
 
-      const countyIndex = order[currentRound];
-      const county = COUNTY_DATA[countyIndex];
+      const countyIndex = order[currentPos];
+      const county = countyOrigins[countyIndex];
 
-      countyNameEl.innerHTML = `
-        <span class="en">${county.en}</span>
-        <span class="ga">${county.ga}</span>
-      `;
+      countyEnEl.textContent = county.en;
+      countyGaEl.textContent = county.ga;
 
-      // Build options: 1 correct, 2 random incorrect
-      const indices = [...Array(TOTAL_ROUNDS).keys()];
-      const incorrectPool = indices.filter(i => i !== countyIndex);
-      shuffle(incorrectPool);
-      const wrong1 = COUNTY_DATA[incorrectPool[0]].meaning;
-      const wrong2 = COUNTY_DATA[incorrectPool[1]].meaning;
+      clearOptionClasses();
+      setOptionsDisabled(false);
+      statusEl.textContent = '';
 
-      let options = [
-        { text: county.meaning, correct: true },
-        { text: wrong1,         correct: false },
-        { text: wrong2,         correct: false }
+      // Build options: correct + two random others
+      const distractorIndices = getDistractors(countyIndex);
+      const optionOrigins = [
+        { text: county.origin, correct: true },
+        { text: countyOrigins[distractorIndices[0]].origin, correct: false },
+        { text: countyOrigins[distractorIndices[1]].origin, correct: false }
       ];
-      shuffle(options);
+      shuffle(optionOrigins);
 
-      options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.textContent = opt.text;
-        btn.addEventListener('click', () => handleAnswer(opt.correct, btn, county.meaning));
-        optionsEl.appendChild(btn);
+      optionOrigins.forEach((opt, idx) => {
+        optionButtons[idx].textContent = opt.text;
+        optionButtons[idx].dataset.correct = opt.correct ? '1' : '0';
+        if (opt.correct) currentCorrectIndex = idx;
       });
 
-      updateRoundInfo();
-      updateStatus();
+      acceptingAnswers = true;
+      updateMeta();
     }
 
-    // --- answer handling ---
-    function handleAnswer(isCorrect, clickedBtn, correctMeaning) {
-      if (answeredCurrent) return;
-      answeredCurrent = true;
-      setButtonsEnabled(false);
-
-      roundsPlayed++;
-
-      if (isCorrect) {
-        clickedBtn.classList.add('correct');
-        lastMessage = 'Correct!';
-        feedbackEl.textContent = `Correct: ${correctMeaning}`;
-        score++;
-      } else {
-        clickedBtn.classList.add('incorrect');
-        // also highlight the correct one
-        const buttons = optionsEl.querySelectorAll('button.option-btn');
-        buttons.forEach(btn => {
-          if (btn.textContent === correctMeaning) {
-            btn.classList.add('correct');
-          }
-        });
-        lastMessage = 'Incorrect.';
-        feedbackEl.textContent = `Incorrect. Correct origin: ${correctMeaning}`;
-      }
-
-      updateStatus();
-
-      if (currentRound >= TOTAL_ROUNDS - 1) {
-        // last round – no countdown to next
-        currentRound++;
-        loadRound();
-      } else {
-        startCountdownToNextRound();
-      }
-    }
-
-    function startCountdownToNextRound() {
-      clearCountdown();
-      currentRound++; // move pointer to next round
-      countdownRemaining = 5;
-      countdownEl.textContent = `Next county in ${countdownRemaining}…`;
-
-      countdownInterval = setInterval(() => {
-        countdownRemaining--;
-        if (countdownRemaining > 0) {
-          countdownEl.textContent = `Next county in ${countdownRemaining}…`;
-        } else {
-          clearCountdown();
+    function startCountdownAndNext() {
+      let remaining = countdownSeconds;
+      statusEl.innerHTML += ` Next round in <span class="highlight">${remaining}</span>…`;
+      countdownTimer = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+          currentPos += 1;
           loadRound();
+        } else {
+          statusEl.innerHTML = statusEl.innerHTML.replace(
+            /Next round in <span class="highlight">.*<\/span>…/,
+            `Next round in <span class="highlight">${remaining}</span>…`
+          );
         }
       }, 1000);
     }
 
-    // --- game reset ---
-    function startGame() {
-      clearCountdown();
-      order = shuffle([...Array(TOTAL_ROUNDS).keys()]);
-      currentRound = 0;
+    function handleAnswer(buttonIndex) {
+      if (!acceptingAnswers) return;
+      acceptingAnswers = false;
+
+      setOptionsDisabled(true);
+      answeredCount += 1;
+
+      const btn = optionButtons[buttonIndex];
+      const isCorrect = btn.dataset.correct === '1';
+
+      if (isCorrect) {
+        score += 1;
+        btn.classList.add('correct');
+        statusEl.innerHTML = `Correct! <span class="highlight">+1 point</span>.`;
+      } else {
+        btn.classList.add('incorrect');
+        // highlight the correct one too
+        if (currentCorrectIndex !== null) {
+          optionButtons[currentCorrectIndex].classList.add('correct');
+        }
+        const countyIndex = order[currentPos];
+        const county = countyOrigins[countyIndex];
+        statusEl.innerHTML =
+          `Incorrect. The correct origin is: <span class="highlight">${county.origin}</span>.`;
+      }
+
+      updateMeta();
+      startCountdownAndNext();
+    }
+
+    optionButtons.forEach((btn, idx) => {
+      btn.addEventListener('click', () => handleAnswer(idx));
+    });
+
+    // ----- start / restart -----
+    function startQuiz() {
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      buildOrder();
+      currentPos = 0;
       score = 0;
-      roundsPlayed = 0;
-      lastMessage = '';
-      answeredCurrent = false;
+      answeredCount = 0;
+      acceptingAnswers = true;
+      clearOptionClasses();
+      setOptionsDisabled(false);
+      statusEl.textContent = '';
       loadRound();
     }
 
-    // --- top bar events ---
+    // ----- top bar events -----
     homeBtn.addEventListener('click', () => {
       window.location.href = 'home.html';
     });
@@ -483,12 +498,11 @@
 
     resetYesBtn.addEventListener('click', () => {
       resetOverlay.classList.add('hidden');
-      startGame();
+      startQuiz();
     });
 
-    // --- boot ---
-    startGame();
+    // ----- boot -----
+    startQuiz();
   </script>
 </body>
 </html>
-
