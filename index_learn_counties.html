@@ -1,21 +1,33 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Name That County (as Gaeilge)</title>
+  <title>Ireland Interactive County Map</title>
+
+  <!-- PWA setup -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
   <style>
-    :root {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f4f4f4;
+    html, body {
+      height: 100%;
+      margin: 0;
     }
     body {
-      margin: 0;
-      padding: 0;
-      background: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-
-    /* --- top banner --- */
     .top-bar {
       display: flex;
       align-items: center;
@@ -24,8 +36,6 @@
       background: #1b8b3d;
       color: #fff;
       box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-      position: sticky;
-      top: 0;
       z-index: 50;
     }
     .top-title {
@@ -34,8 +44,7 @@
       text-align: center;
       flex: 1;
     }
-    .top-left,
-    .top-right {
+    .top-left, .top-right {
       width: 2.2rem;
       display: flex;
       justify-content: center;
@@ -57,756 +66,147 @@
       background: rgba(255,255,255,0.25);
     }
 
-    /* page content wrapper */
-    .page {
-      padding: 0.75rem 1rem 1.25rem;
-      max-width: 1100px;   /* NEW: constrain width on large screens */
-      margin: 0 auto;      /* NEW: centre the whole quiz horizontally */
+    #map {
+      flex: 1;
+      min-height: 0;
     }
-
-    h1 {
-      margin: 0 0 0.35rem 0;
-      font-size: 1.35rem;
-    }
-    .layout {
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
-      margin-top: 0.75rem;
-      flex-wrap: wrap;
-    }
-    #mapContainer {
-      background: #ffffff;
-      padding: 0.5rem;
+    .leaflet-tooltip {
+      background: white;
+      border: 1px solid #bbb;
       border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      flex: 1 1 320px;
-    }
-    canvas {
-      display: block;
-      background: #ffffff;
-      border: 1px solid #ddd;
-      max-width: 100%;
-      height: auto;
-    }
-    #rightPanel {
-      min-width: 260px;
-      max-width: 320px;
-      background: #ffffff;
-      padding: 0.75rem;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      flex: 0 0 280px;
-    }
-    #log {
-      border-top: 1px solid #eee;
-      margin-top: 0.5rem;
-      padding-top: 0.5rem;
-      max-height: 420px;
-      overflow-y: auto;
-    }
-
-    .log-item {
-      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.9rem;
-      border: 1px solid #eef1f4;
-      border-radius: 8px;
-      padding: 6px 8px;
-      margin-bottom: 6px;
-      background: #fafbfc;
-    }
-    .log-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-    }
-    .log-line {
-      white-space: pre-wrap;
-      margin-right: 8px;
-    }
-    .guess {
-      display: none;
-      margin-top: 4px;
-      color: #333;
-    }
-    .guess b { color: #000; }
-    .reveal {
-      padding: 4px 8px;
-      font-size: 0.85rem;
-      border-radius: 6px;
-      border: 1px solid #d7dce1;
-      background: #fff;
-      cursor: pointer;
-    }
-    .reveal:hover { background: #f2f4f7; }
-
-    #controls {
-      margin-top: 0.75rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      align-items: center;
-    }
-    #answer {
-      flex: 1 1 200px;
-      padding: 0.4rem 0.5rem;
-      font-size: 0.95rem;
-    }
-    button {
-      padding: 0.4rem 0.6rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      background: #f6f6f6;
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-    #status {
-      margin-top: 0.4rem;
-      font-size: 0.9rem;
-    }
-    #hintText {
-      margin-top: 0.25rem;
-      font-size: 0.9rem;
-      color: #444;
-    }
-    #roundInfo {
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-
-    /* countdown text */
-    #countdown {
-      margin-top: 0.25rem;
-      font-size: 0.9rem;
-      color: #b04a1f;
-    }
-
-    /* responsive stacking: log under map on narrow screens */
-    @media (max-width: 768px) {
-      .layout {
-        flex-direction: column;
-      }
-      #rightPanel {
-        max-width: none;
-        width: 100%;
-      }
-    }
-
-    /* --- reset confirmation overlay --- */
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-    .overlay.hidden {
-      display: none;
-    }
-    .dialog {
-      background: #fff;
-      border-radius: 10px;
-      padding: 1rem 1.2rem 0.9rem;
-      max-width: 340px;
-      width: 100%;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-    }
-    .dialog p {
-      margin: 0 0 0.75rem 0;
-      font-size: 0.95rem;
-    }
-    .dialog-buttons {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-    }
-    .dialog-buttons button {
-      min-width: 70px;
-    }
-    .btn-yes {
-      background: #d9534f;
-      border-color: #c64541;
-      color: #fff;
-    }
-    .btn-yes:hover {
-      background: #c64541;
+      padding: 4px 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
     }
   </style>
 </head>
+
 <body>
-  <!-- Top banner with Home + Reset icon -->
   <header class="top-bar">
     <div class="top-left">
-      <button class="icon-btn" id="homeBtn" title="Back to home">🏠</button>
+      <button class="icon-btn" onclick="window.location.href='home.html'" title="Back to home">🏠</button>
     </div>
-    <div class="top-title">Irish County Quiz</div>
-    <div class="top-right">
-      <button class="icon-btn" id="resetBtn" title="Reset game">⟲</button>
-    </div>
+    <div class="top-title">Learn Counties</div>
+    <div class="top-right"></div>
   </header>
 
-  <div class="page">
-    <h1>Name That County (as Gaeilge)</h1>
-    <div id="roundInfo">Loading…</div>
-    <div id="status"></div>
-    <div id="countdown"></div>
-    <div id="hintText"></div>
+  <div id="map"></div>
 
-    <div id="controls">
-      <input id="answer" type="text" placeholder="Type Irish name (case-sensitive)">
-      <button id="enterBtn">Enter</button>
-      <button id="hint1Btn">Show map</button>
-      <button id="hint2Btn">Starting characters</button>
-      <!-- old Reset button removed; reset now lives in the top banner -->
-    </div>
-
-    <div class="layout">
-      <div id="mapContainer">
-        <canvas id="map" width="520" height="520"></canvas>
-      </div>
-      <div id="rightPanel">
-        <strong>Answer log</strong>
-        <div id="log">No answers yet.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Reset confirmation dialog -->
-  <div id="resetOverlay" class="overlay hidden">
-    <div class="dialog">
-      <p>Are you sure you want to reset and start the game again?</p>
-      <div class="dialog-buttons">
-        <button id="resetNo" type="button">No</button>
-        <button id="resetYes" type="button" class="btn-yes">Yes</button>
-      </div>
-    </div>
-  </div>
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin="">
+  </script>
 
   <script>
-    // ---------- ETYMOLOGY ----------
-    const ETYM = {
-      "Antrim":      ["Aontroim",        "‘Lone ridge’ (aon + droim)."],
-      "Armagh":      ["Ard Mhacha",      "‘Height of Macha’ (goddess Macha)."],
-      "Down":        ["An Dún",          "‘The fort’."] ,
-      "Fermanagh":   ["Fir Manach",      "‘Men/land of Manach’."] ,
-      "Tyrone":      ["Tír Eoghain",     "‘Land of Eoghan’."] ,
-      "Derry":       ["Doire",           "‘Oak grove/wood’."] ,
-      "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’."] ,
-      "Monaghan":    ["Muineachán",      "‘Place of little thickets’."] ,
-      "Cavan":       ["An Cabhán",       "‘The hollow/little hill’."] ,
-      "Dublin":      ["Baile Átha Cliath","‘Town of the ford of hurdles’."] ,
-      "Kildare":     ["Cill Dara",       "‘Church of the oak’."] ,
-      "Kilkenny":    ["Cill Chainnigh",  "‘Church of (St.) Canice’."] ,
-      "Laois":       ["Laois",           "From Uí Laoighis ‘people of Laoighseach’."] ,
-      "Longford":    ["An Longfort",     "‘The fortress/ship-fort’."] ,
-      "Louth":       ["Lú",              "Named after the god Lugh."] ,
-      "Meath":       ["An Mhí",          "From Mide ‘middle (kingdom)’."] ,
-      "Offaly":      ["Uíbh Fhailí",     "‘Descendants of Failge’."] ,
-      "Westmeath":   ["An Iarmhí",       "‘The western Meath’."] ,
-      "Wexford":     ["Loch Garman",     "‘Garman’s lake’."] ,
-      "Wicklow":     ["Cill Mhantáin",   "‘Church of Mantan’ (saint’s name)."] ,
-      "Carlow":      ["Ceatharlach",     "Possibly ‘place of cattle grazing’ / ‘four lakes’."] ,
-      "Clare":       ["An Clár",         "‘The board/plank’ (bridge) or ‘the plain’."] ,
-      "Cork":        ["Corcaigh",        "‘Marsh/boggy place’."] ,
-      "Kerry":       ["Ciarraí",         "‘People of Ciar’ (Ciarraige)."] ,
-      "Limerick":    ["Luimneach",       "Possibly ‘bare place’ / floodplain."] ,
-      "Tipperary":   ["Tiobraid Árann",  "‘The well of the River Ara’."] ,
-      "Waterford":   ["Port Láirge",     "‘Harbour of the (river) Lairge’."] ,
-      "Galway":      ["Gaillimh",        "From River Gaillimh; often glossed ‘stony/rocky’."] ,
-      "Leitrim":     ["Liatroim",        "‘Grey ridge’ (liath + droim)."] ,
-      "Mayo":        ["Maigh Eo",        "‘Plain of the yew trees’."] ,
-      "Roscommon":   ["Ros Comáin",      "‘Comán’s wood’."] ,
-      "Sligo":       ["Sligeach",        "‘Shelly place/abounding in shells’."] ,
-    };
+  // --- Register service worker for offline/PWA ---
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js');
+    });
+  }
 
-    // ---- basic DOM refs ----
-    const canvas = document.getElementById('map');
-    const ctx = canvas.getContext('2d');
-    const answerInput = document.getElementById('answer');
-    const enterBtn = document.getElementById('enterBtn');
-    const hint1Btn = document.getElementById('hint1Btn');
-    const hint2Btn = document.getElementById('hint2Btn');
-    const statusEl = document.getElementById('status');
-    const hintTextEl = document.getElementById('hintText');
-    const logEl = document.getElementById('log');
-    const roundInfoEl = document.getElementById('roundInfo');
-    const countdownEl = document.getElementById('countdown');
+  // --- Irish meanings (short summaries for tooltip/popup) ---
+  const ETYM = {
+    "Antrim":["Aontroim","‘Lone ridge’ (aon + droim)"],
+    "Armagh":["Ard Mhacha","‘Height of Macha’"],
+    "Down":["An Dún","‘The fort’"],
+    "Fermanagh":["Fir Manach","‘Men/land of Manach’"],
+    "Tyrone":["Tír Eoghain","‘Land of Eoghan’"],
+    "Derry":["Doire","‘Oak grove’"],
+    "Donegal":["Dún na nGall","‘Fort of the foreigners’"],
+    "Monaghan":["Muineachán","‘Place of little thickets’"],
+    "Cavan":["An Cabhán","‘The hollow/little hill’"],
+    "Dublin":["Baile Átha Cliath","‘Town of the ford of hurdles’"],
+    "Kildare":["Cill Dara","‘Church of the oak’"],
+    "Kilkenny":["Cill Chainnigh","‘Church of Canice’"],
+    "Laois":["Laois","Uí Laoighis origin"],
+    "Longford":["An Longfort","‘The fortress/ship-fort’"],
+    "Louth":["Lú","Named after Lugh"],
+    "Meath":["An Mhí","From Mide ‘middle’"],
+    "Offaly":["Uíbh Fhailí","‘Descendants of Failge’"],
+    "Westmeath":["An Iarmhí","‘Western Meath’"],
+    "Wexford":["Loch Garman","‘Garman’s lake’"],
+    "Wicklow":["Cill Mhantáin","‘Church of Mantan’"],
+    "Carlow":["Ceatharlach","Poss. ‘cattle place’ / ‘four lakes’"],
+    "Clare":["An Clár","‘Board/plank’ or ‘plain’"],
+    "Cork":["Corcaigh","‘Marsh’"],
+    "Kerry":["Ciarraí","‘People of Ciar’"],
+    "Limerick":["Luimneach","Poss. ‘bare/floodplain’"],
+    "Tipperary":["Tiobraid Árann","‘Well of the Ara’"],
+    "Waterford":["Port Láirge","‘Harbour of Lairge’"],
+    "Galway":["Gaillimh","From the river; ‘stony/rocky’"],
+    "Leitrim":["Liatroim","‘Grey ridge’"],
+    "Mayo":["Maigh Eo","‘Plain of yews’"],
+    "Roscommon":["Ros Comáin","‘Comán’s wood’"],
+    "Sligo":["Sligeach","‘Shelly place’"]
+  };
 
-    // top-bar + reset dialog
-    const homeBtn = document.getElementById('homeBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const resetOverlay = document.getElementById('resetOverlay');
-    const resetYesBtn = document.getElementById('resetYes');
-    const resetNoBtn = document.getElementById('resetNo');
+  // --- Base map (Light as default) ---
+  const map = L.map('map', { zoomControl: true }).setView([53.4, -7.9], 7);
+  const light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap & CARTO'
+  }).addTo(map);
+  const dark  = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap & CARTO'
+  });
+  const baseLayers = { "Light": light, "Dark": dark };
 
-    // ---- game state ----
-    let counties = [];          // { en, ga, rings: [ [ {x,y}, ... ], ... ] }
-    let order = [];             // random order of indices
-    let pos = 0;                // position in order
-    let shown = [];             // { id, index, correct, answer }
-    let score = 0;
-    let currentIndex = null;
-    let globalBounds = null;    // bounds for full map drawing
+  // --- Style & highlight colors ---
+  const style = { color: "#555", weight: 1, fillColor: "#999", fillOpacity: 0.25 };
+  const highlight = { color: "#111", weight: 2, fillColor: "#ff0", fillOpacity: 0.7 };
 
-    let usedHint1 = false;
-    let usedHint2 = false;
-    let lastMessage = '';
-    let countdownTimer = null;  // countdown between rounds
-
-    // ---- helpers ----
-    const esc = (s) =>
-      String(s).replace(/[&<>"]/g, c =>
-        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])
+  // --- Load GeoJSON data ---
+  fetch('irish_counties_simplified.geojson')
+    .then(resp => resp.json())
+    .then(data => {
+      const isTouch = (
+        'ontouchstart' in window ||
+        navigator.maxTouchPoints > 0 ||
+        window.matchMedia('(pointer: coarse)').matches
       );
 
-    // ---- utility: random shuffle ----
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
+      const layer = L.geoJSON(data, {
+        style: () => style,
+        onEachFeature: (feature, lyr) => {
+          const p = feature.properties || {};
+          const en = p.name_en || p.NAME_EN || p.CountyName || p.name || '';
+          const meta = ETYM[en] || ['', ''];
+          const ga = p.name_ga || meta[0] || '';
+          const meaning = p.meaning || meta[1] || '';
 
-    // ---- enable/disable controls ----
-    function setControlsEnabled(on) {
-      answerInput.disabled = !on;
-      enterBtn.disabled = !on;
-      hint1Btn.disabled = !on;
-      hint2Btn.disabled = !on;
-    }
+          const content = `<b>${en}</b><br><i>${ga}</i><p style="margin:6px 0 0;">${meaning}</p>`;
 
-    // ---- name helpers ----
-    function getNameEn(props) {
-      const keys = ["name_en", "NAME_EN", "CountyName", "name", "NAME", "County", "county"];
-      for (const k of keys) {
-        if (props && typeof props[k] === 'string' && props[k].trim()) return props[k].trim();
-      }
-      return '';
-    }
-    function getNameGa(props) {
-      const keys = ["name_ga", "NAME_GA", "GaelicName"];
-      for (const k of keys) {
-        if (props && typeof props[k] === 'string' && props[k].trim()) return props[k].trim();
-      }
-      return '';
-    }
-
-    // ---- geometry helpers ----
-    function ringsFromGeometry(geom) {
-      const t = geom.type;
-      const C = geom.coordinates || [];
-      const out = [];
-      const convRing = (ring) => ring.map(([x, y]) => ({ lon: Number(x), lat: Number(y) }));
-      if (t === 'Polygon') {
-        for (const r of C) out.push(convRing(r));
-      } else if (t === 'MultiPolygon') {
-        for (const poly of C) {
-          for (const r of poly) out.push(convRing(r));
-        }
-      }
-      return out;
-    }
-
-    // ---------- Load GeoJSON + pre-scale ----------
-    async function loadData() {
-      const resp = await fetch('irish_counties_simplified.geojson?v=2', { cache: 'no-store' });
-      if (!resp.ok) throw new Error('Failed to load GeoJSON');
-      const gj = await resp.json();
-
-      const raw = [];
-      let latMin = Infinity, latMax = -Infinity;
-      for (const feat of gj.features || []) {
-        const props = feat.properties || {};
-        const en = getNameEn(props);
-        const ga = getNameGa(props);
-        const rings = ringsFromGeometry(feat.geometry);
-        if (!rings.length) continue;
-        raw.push({ en, ga, rings });
-        for (const ring of rings) for (const pt of ring) {
-          if (pt.lat < latMin) latMin = pt.lat;
-          if (pt.lat > latMax) latMax = pt.lat;
-        }
-      }
-      if (!raw.length) throw new Error('No usable counties in GeoJSON');
-
-      const latMid = 0.5 * (latMin + latMax);
-      const cosLatMid = Math.cos(latMid * Math.PI / 180);
-
-      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-      counties = raw.map(f => {
-        const ringsScaled = f.rings.map(ring =>
-          ring.map(pt => {
-            const y = pt.lat;
-            const x = pt.lon * cosLatMid;
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
-            return { x, y };
-          })
-        );
-        return { en: f.en, ga: f.ga, rings: ringsScaled };
-      });
-      globalBounds = { minX, maxX, minY, maxY };
-      console.log('Loaded counties:', counties.length);
-    }
-
-    // ---- projection to canvas (same as working version) ----
-    function projectPoint(pt, bounds) {
-      const padding = 20;
-      const w = canvas.width;
-      const h = canvas.height;
-
-      const spanX = bounds.maxX - bounds.minX;
-      const spanY = bounds.maxY - bounds.minY;
-
-      const scale = Math.min(
-        (w - 2 * padding) / spanX,
-        (h - 2 * padding) / spanY
-      );
-
-      const offsetX = (w - scale * spanX) / 2;
-      const offsetY = (h - scale * spanY) / 2;
-
-      const x = offsetX + (pt.x - bounds.minX) * scale;
-      const y = h - (offsetY + (pt.y - bounds.minY) * scale); // invert y
-
-      return { x, y };
-    }
-
-    function boundsForCounty(county) {
-      let minX = Infinity, maxX = -Infinity;
-      let minY = Infinity, maxY = -Infinity;
-      for (const ring of county.rings) {
-        for (const pt of ring) {
-          if (pt.x < minX) minX = pt.x;
-          if (pt.x > maxX) maxX = pt.x;
-          if (pt.y < minY) minY = pt.y;
-          if (pt.y > maxY) maxY = pt.y;
-        }
-      }
-      const padX = (maxX - minX) * 0.05;
-      const padY = (maxY - minY) * 0.05;
-      return {
-        minX: minX - padX,
-        maxX: maxX + padX,
-        minY: minY - padY,
-        maxY: maxY + padY
-      };
-    }
-
-    // ---- drawing ----
-    function clearCanvas() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function drawCountyOutline(index) {
-      const county = counties[index];
-      const bounds = boundsForCounty(county);
-      clearCanvas();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#000000';
-      ctx.beginPath();
-      let first = true;
-      for (const ring of county.rings) {
-        for (let i = 0; i < ring.length; i++) {
-          const p = projectPoint(ring[i], bounds);
-          if (i === 0 || first) {
-            ctx.moveTo(p.x, p.y);
-            first = false;
+          if (isTouch) {
+            // Mobile: popup only
+            lyr.bindPopup(content, { maxWidth: 320, autoPan: true });
           } else {
-            ctx.lineTo(p.x, p.y);
+            // Desktop: tooltip on hover, popup on click
+            lyr.bindTooltip(
+              `<b>English</b> ${en}<br><b>Irish</b> ${ga}<br><b>Meaning</b> ${meaning}`,
+              { sticky: true, direction: 'auto', opacity: 0.95 }
+            );
+            lyr.bindPopup(content, { maxWidth: 320, autoPan: true });
           }
+
+          // Highlight interaction
+          lyr.on({
+            mouseover: () => lyr.setStyle(highlight),
+            mouseout:  () => lyr.setStyle(style)
+          });
+
+          // Close tooltip if popup opens
+          lyr.on('popupopen', () => lyr.closeTooltip && lyr.closeTooltip());
         }
-      }
-      ctx.stroke();
-    }
+      }).addTo(map);
 
-    function drawFullMapHighlight(index) {
-      clearCanvas();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = '#dddddd';
-
-      // all counties
-      for (const county of counties) {
-        ctx.beginPath();
-        let first = true;
-        for (const ring of county.rings) {
-          for (let i = 0; i < ring.length; i++) {
-            const p = projectPoint(ring[i], globalBounds);
-            if (i === 0 || first) {
-              ctx.moveTo(p.x, p.y);
-              first = false;
-            } else {
-              ctx.lineTo(p.x, p.y);
-            }
-          }
-        }
-        ctx.stroke();
-      }
-
-      // highlight current
-      const county = counties[index];
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#000000';
-      ctx.beginPath();
-      let first = true;
-      for (const ring of county.rings) {
-        for (let i = 0; i < ring.length; i++) {
-          const p = projectPoint(ring[i], globalBounds);
-          if (i === 0 || first) {
-            ctx.moveTo(p.x, p.y);
-            first = false;
-          } else {
-            ctx.lineTo(p.x, p.y);
-          }
-        }
-      }
-      ctx.stroke();
-    }
-
-    // ---- log / UI updates ----
-    function buildLogHTML() {
-      if (!shown.length) {
-        return '<div class="log-item">No answers yet.</div>';
-      }
-      return shown.map((entry, i) => {
-        const c = counties[entry.index];
-        const mark = entry.correct ? '✅Correct: ' : '❌Incorrect: ';
-        const et = (ETYM[c.en] && ETYM[c.en][1])
-          ? ' — ' + esc(ETYM[c.en][1])
-          : '';
-        const line = `${String(i + 1).padStart(2, ' ')}. ${mark}  ${esc(c.ga)}  (${esc(c.en)})${et}`;
-        const guess = esc(entry.answer);
-        return `
-          <div class="log-item" data-id="${entry.id}">
-            <div class="log-top">
-              <div class="log-line">${line}</div>
-              <button class="reveal" data-id="${entry.id}" type="button">Show guess</button>
-            </div>
-            <div class="guess" id="guess-${entry.id}"><b>Entered:</b> ${guess}</div>
-          </div>`;
-      }).join('');
-    }
-
-    function updateLog() {
-      logEl.innerHTML = buildLogHTML();
-    }
-
-    function updateStatus() {
-      const roundText =
-        pos < order.length
-          ? `Round ${pos + 1} of ${order.length}`
-          : 'Game over';
-      roundInfoEl.textContent = roundText;
-      const scoreText = `Score: ${score} / ${shown.length}`;
-      statusEl.textContent = lastMessage
-        ? `${scoreText} — ${lastMessage}`
-        : scoreText;
-    }
-
-    function resetHintsForRound() {
-      usedHint1 = false;
-      usedHint2 = false;
-      hint1Btn.disabled = false;
-      hint2Btn.disabled = false;
-      hintTextEl.textContent = '';
-      // reset button labels for toggles
-      hint1Btn.textContent = 'Show map';
-      hint2Btn.textContent = 'Starting characters';
-    }
-
-    function nextRound() {
-      // clear any leftover countdown text (safety)
-      countdownEl.textContent = '';
-
-      if (pos >= order.length) {
-        lastMessage = 'All counties have been shown.';
-        updateStatus();
-        answerInput.disabled = true;
-        enterBtn.disabled = true;
-        hint1Btn.disabled = true;
-        hint2Btn.disabled = true;
-        return;
-      }
-      currentIndex = order[pos];
-      resetHintsForRound();
-      lastMessage = '';
-      updateStatus();
-      answerInput.value = '';
-      answerInput.disabled = false;
-      enterBtn.disabled = false;
-      answerInput.focus();
-      drawCountyOutline(currentIndex);
-      updateLog();
-    }
-
-    // ---- 5-second countdown between rounds ----
-    function startCountdownAndGo() {
-      // If we've just finished the last county, go straight to game over
-      if (pos >= order.length) {
-        nextRound();
-        return;
-      }
-
-      let t = 5;
-      countdownEl.textContent = `Next question in ${t}…`;
-      setControlsEnabled(false);
-
-      if (countdownTimer) {
-        clearInterval(countdownTimer);
-        countdownTimer = null;
-      }
-
-      countdownTimer = setInterval(() => {
-        t -= 1;
-        if (t > 0) {
-          countdownEl.textContent = `Next question in ${t}…`;
-        } else {
-          clearInterval(countdownTimer);
-          countdownTimer = null;
-          countdownEl.textContent = '';
-          setControlsEnabled(true);
-          nextRound();
-        }
-      }, 1000);
-    }
-
-    // ---- button handlers ----
-    function onEnter() {
-      if (currentIndex == null) return;
-      const county = counties[currentIndex];
-      const ga = county.ga || '';
-      const en = county.en || '';
-      const guess = answerInput.value.trim();
-      if (!guess) return;
-
-      const correct = guess === ga;
-      if (correct) {
-        score += 1;
-        lastMessage = `✅Correct: ${ga} (${en})`;
-      } else {
-        lastMessage = `❌Incorrect. Correct answer: ${ga} (${en})`;
-      }
-
-      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      shown.push({ id, index: currentIndex, correct, answer: guess });
-
-      pos += 1;
-      updateLog();
-      updateStatus();
-      startCountdownAndGo();
-    }
-
-    function onHint1() {
-      if (currentIndex == null) return;
-      // toggle behaviour
-      if (!usedHint1) {
-        drawFullMapHighlight(currentIndex);
-        usedHint1 = true;
-        hint1Btn.textContent = 'Hide map';
-      } else {
-        drawCountyOutline(currentIndex);
-        usedHint1 = false;
-        hint1Btn.textContent = 'Show map';
-      }
-    }
-
-    function onHint2() {
-      if (currentIndex == null) return;
-      const county = counties[currentIndex];
-      const ga = county.ga || '';
-      // toggle behaviour
-      if (!usedHint2) {
-        hintTextEl.textContent = 'Starting characters: ' + ga.slice(0, 3);
-        usedHint2 = true;
-        hint2Btn.textContent = 'Hide starting characters';
-      } else {
-        hintTextEl.textContent = '';
-        usedHint2 = false;
-        hint2Btn.textContent = 'Starting characters';
-      }
-    }
-
-    // ---- start / restart game ----
-    async function startGame() {
-      try {
-        // cancel any active countdown
-        if (countdownTimer) {
-          clearInterval(countdownTimer);
-          countdownTimer = null;
-        }
-        countdownEl.textContent = '';
-        setControlsEnabled(true);
-
-        if (!counties.length) {
-          await loadData();
-        }
-        order = shuffle([...Array(counties.length).keys()]);
-        pos = 0;
-        score = 0;
-        shown = [];
-        lastMessage = '';
-        currentIndex = null;
-        updateLog();
-        nextRound();  // first round shows immediately (no countdown before Q1)
-      } catch (err) {
-        console.error(err);
-        roundInfoEl.textContent = 'Error loading data.';
-        statusEl.textContent = err.message || String(err);
-      }
-    }
-
-    // ---- wire events ----
-    enterBtn.addEventListener('click', onEnter);
-    answerInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        onEnter();
-      }
+      map.fitBounds(layer.getBounds(), { padding: [10, 10] });
+      L.control.layers(baseLayers, { "Counties": layer }, { collapsed: false }).addTo(map);
+    })
+    .catch(err => {
+      alert('Failed to load GeoJSON. Check the filename or URL in fetch().');
+      console.error(err);
     });
-    hint1Btn.addEventListener('click', onHint1);
-    hint2Btn.addEventListener('click', onHint2);
-
-    // reveal/hide guess (event delegation)
-    logEl.addEventListener('click', (e) => {
-      const btn = e.target.closest('.reveal');
-      if (!btn) return;
-      const id = btn.getAttribute('data-id');
-      const block = document.getElementById(`guess-${id}`);
-      if (!block) return;
-      const visible = block.style.display === 'block';
-      block.style.display = visible ? 'none' : 'block';
-      btn.textContent = visible ? 'Show guess' : 'Hide guess';
-    });
-
-    // top bar events
-    homeBtn.addEventListener('click', () => {
-      window.location.href = 'home.html';
-    });
-    resetBtn.addEventListener('click', () => {
-      resetOverlay.classList.remove('hidden');
-    });
-    resetNoBtn.addEventListener('click', () => {
-      resetOverlay.classList.add('hidden');
-    });
-    resetYesBtn.addEventListener('click', () => {
-      resetOverlay.classList.add('hidden');
-      startGame();  // actually restart the quiz
-    });
-
-    // ---- boot ----
-    startGame();
   </script>
 </body>
 </html>
