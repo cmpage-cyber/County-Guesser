@@ -3,46 +3,489 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>County Origins – Coming Soon</title>
+  <title>County Origins Quiz</title>
   <style>
     :root {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #f4f4f4;
+      color: #111;
     }
     body {
       margin: 0;
-      min-height: 100vh;
+      padding: 0;
+      background: #f4f4f4;
+    }
+
+    /* --- top banner (same style as other quizzes) --- */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.4rem 0.75rem;
+      background: #1b8b3d;
+      color: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .top-title {
+      font-weight: 600;
+      font-size: 1rem;
+      text-align: center;
+      flex: 1;
+    }
+    .top-left,
+    .top-right {
+      width: 2.2rem;
+      display: flex;
+      justify-content: center;
+    }
+    .icon-btn {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      border: none;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+    .icon-btn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* --- page layout --- */
+    .page {
+      padding: 0.9rem 1rem 1.5rem;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.4rem;
+    }
+    .subtitle {
+      margin: 0 0 1rem 0;
+      font-size: 0.95rem;
+      color: #444;
+    }
+    #roundInfo {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    #status {
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      padding: 1rem 1rem 1.2rem;
+    }
+
+    #countyName {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+    #countyName span {
+      display: block;
+    }
+    #countyName .en {
+      font-weight: 600;
+    }
+    #countyName .ga {
+      font-style: italic;
+      color: #155724;
+    }
+    #prompt {
+      margin: 0.5rem 0 0.9rem;
+      font-size: 0.95rem;
+      color: #222;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .option-btn {
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #f7f7f7;
+      padding: 0.6rem 0.7rem;
+      font-size: 0.95rem;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.05s;
+    }
+    .option-btn:hover:not(:disabled) {
+      background: #ececec;
+    }
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.99);
+    }
+    .option-btn:disabled {
+      cursor: default;
+      opacity: 0.95;
+    }
+    .option-btn.correct {
+      background: #28a745;
+      border-color: #1e7e34;
+      color: #fff;
+    }
+    .option-btn.incorrect {
+      background: #dc3545;
+      border-color: #b21f2d;
+      color: #fff;
+    }
+
+    #feedback {
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+    }
+    #countdown {
+      margin-top: 0.35rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    /* Reset confirmation overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
       display: flex;
       align-items: center;
       justify-content: center;
-      text-align: center;
-      padding: 1.5rem;
+      z-index: 100;
     }
-    .card {
+    .overlay.hidden {
+      display: none;
+    }
+    .dialog {
       background: #fff;
-      padding: 1.5rem 1.25rem;
       border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-      max-width: 420px;
+      padding: 1rem 1.2rem 0.9rem;
+      max-width: 340px;
       width: 100%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
     }
-    h1 { margin-top: 0; }
-    button {
-      margin-top: 1rem;
-      padding: 0.6rem 1rem;
-      border-radius: 999px;
+    .dialog p {
+      margin: 0 0 0.75rem 0;
+      font-size: 0.95rem;
+    }
+    .dialog-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+    .dialog-buttons button {
+      min-width: 70px;
+      padding: 0.4rem 0.7rem;
+      border-radius: 6px;
       border: 1px solid #ccc;
-      background: #f6f6f6;
       cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn-yes {
+      background: #d9534f;
+      border-color: #c64541;
+      color: #fff;
+    }
+    .btn-yes:hover {
+      background: #c64541;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>County Origins</h1>
-    <p>This section will explore the history and meanings of county names.</p>
-    <p><em>Coming soon!</em></p>
-    <button onclick="window.location.href='home.html'">Back to home</button>
+  <!-- Top banner -->
+  <header class="top-bar">
+    <div class="top-left">
+      <button class="icon-btn" id="homeBtn" title="Back to home">🏠</button>
+    </div>
+    <div class="top-title">County Origins Quiz</div>
+    <div class="top-right">
+      <button class="icon-btn" id="resetBtn" title="Reset game">⟲</button>
+    </div>
+  </header>
+
+  <div class="page">
+    <h1>County Origins Quiz</h1>
+    <p class="subtitle">
+      For each county, choose the correct origin or meaning of the name.
+    </p>
+
+    <div id="roundInfo"></div>
+    <div id="status"></div>
+
+    <div class="card">
+      <h2 id="countyName">
+        <!-- English + Irish appear here -->
+      </h2>
+      <p id="prompt">What is the origin of this county name?</p>
+
+      <div id="options" class="options">
+        <!-- answer buttons created by JS -->
+      </div>
+
+      <div id="feedback"></div>
+      <div id="countdown"></div>
+    </div>
   </div>
+
+  <!-- Reset confirmation dialog -->
+  <div id="resetOverlay" class="overlay hidden">
+    <div class="dialog">
+      <p>Are you sure you want to reset and start the quiz again?</p>
+      <div class="dialog-buttons">
+        <button id="resetNo" type="button">No</button>
+        <button id="resetYes" type="button" class="btn-yes">Yes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Data: English, Irish, origin ---
+    const COUNTY_DATA = [
+      { en: "Antrim",     ga: "Aontroim",         meaning: "‘Lone ridge’ (aon + droim)" },
+      { en: "Armagh",     ga: "Ard Mhacha",       meaning: "‘Height of Macha’" },
+      { en: "Down",       ga: "An Dún",           meaning: "‘The fort’" },
+      { en: "Fermanagh",  ga: "Fir Manach",       meaning: "‘Men/land of Manach’" },
+      { en: "Tyrone",     ga: "Tír Eoghain",      meaning: "‘Land of Eoghan’" },
+      { en: "Derry",      ga: "Doire",            meaning: "‘Oak grove’" },
+      { en: "Donegal",    ga: "Dún na nGall",     meaning: "‘Fort of the foreigners’" },
+      { en: "Monaghan",   ga: "Muineachán",       meaning: "‘Place of little thickets’" },
+      { en: "Cavan",      ga: "An Cabhán",        meaning: "‘The hollow/little hill’" },
+      { en: "Dublin",     ga: "Baile Átha Cliath",meaning: "‘Town of the ford of hurdles’" },
+      { en: "Kildare",    ga: "Cill Dara",        meaning: "‘Church of the oak’" },
+      { en: "Kilkenny",   ga: "Cill Chainnigh",   meaning: "‘Church of Canice’" },
+      { en: "Laois",      ga: "Laois",            meaning: "Uí Laoighis origin" },
+      { en: "Longford",   ga: "An Longfort",      meaning: "‘The fortress/ship-fort’" },
+      { en: "Louth",      ga: "Lú",               meaning: "Named after Lugh" },
+      { en: "Meath",      ga: "An Mhí",           meaning: "From Mide ‘middle’" },
+      { en: "Offaly",     ga: "Uíbh Fhailí",      meaning: "‘Descendants of Failge’" },
+      { en: "Westmeath",  ga: "An Iarmhí",        meaning: "‘Western Meath’" },
+      { en: "Wexford",    ga: "Loch Garman",      meaning: "‘Garman’s lake’" },
+      { en: "Wicklow",    ga: "Cill Mhantáin",    meaning: "‘Church of Mantan’" },
+      { en: "Carlow",     ga: "Ceatharlach",      meaning: "Poss. ‘cattle place’ / ‘four lakes’" },
+      { en: "Clare",      ga: "An Clár",          meaning: "‘Board/plank’ or ‘plain’" },
+      { en: "Cork",       ga: "Corcaigh",         meaning: "‘Marsh’" },
+      { en: "Kerry",      ga: "Ciarraí",          meaning: "‘People of Ciar’" },
+      { en: "Limerick",   ga: "Luimneach",        meaning: "Poss. ‘bare/floodplain’" },
+      { en: "Tipperary",  ga: "Tiobraid Árann",   meaning: "‘Well of the Ara’" },
+      { en: "Waterford",  ga: "Port Láirge",      meaning: "‘Harbour of Lairge’" },
+      { en: "Galway",     ga: "Gaillimh",         meaning: "From the river; ‘stony/rocky’" },
+      { en: "Leitrim",    ga: "Liatroim",         meaning: "‘Grey ridge’" },
+      { en: "Mayo",       ga: "Maigh Eo",         meaning: "‘Plain of yews’" },
+      { en: "Roscommon",  ga: "Ros Comáin",       meaning: "‘Comán’s wood’" },
+      { en: "Sligo",      ga: "Sligeach",         meaning: "‘Shelly place’" }
+    ];
+
+    const TOTAL_ROUNDS = COUNTY_DATA.length;
+
+    // --- DOM references ---
+    const homeBtn      = document.getElementById('homeBtn');
+    const resetBtn     = document.getElementById('resetBtn');
+    const resetOverlay = document.getElementById('resetOverlay');
+    const resetYesBtn  = document.getElementById('resetYes');
+    const resetNoBtn   = document.getElementById('resetNo');
+
+    const roundInfoEl  = document.getElementById('roundInfo');
+    const statusEl     = document.getElementById('status');
+    const countyNameEl = document.getElementById('countyName');
+    const optionsEl    = document.getElementById('options');
+    const feedbackEl   = document.getElementById('feedback');
+    const countdownEl  = document.getElementById('countdown');
+
+    // --- game state ---
+    let order = [];
+    let currentRound = 0;    // 0..TOTAL_ROUNDS-1
+    let score = 0;
+    let roundsPlayed = 0;
+    let lastMessage = '';
+    let answeredCurrent = false;
+
+    let countdownInterval = null;
+    let countdownRemaining = 0;
+
+    // --- helpers ---
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function clearCountdown() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+    }
+
+    function updateRoundInfo() {
+      if (currentRound < TOTAL_ROUNDS) {
+        roundInfoEl.textContent = `Round ${currentRound + 1} of ${TOTAL_ROUNDS}`;
+      } else {
+        roundInfoEl.textContent = `Finished – ${TOTAL_ROUNDS} counties`;
+      }
+    }
+
+    function updateStatus() {
+      const baseScore = `Score: ${score} / ${roundsPlayed}`;
+      statusEl.textContent = lastMessage ? `${baseScore} — ${lastMessage}` : baseScore;
+    }
+
+    function setButtonsEnabled(enabled) {
+      const buttons = optionsEl.querySelectorAll('button.option-btn');
+      buttons.forEach(btn => {
+        btn.disabled = !enabled;
+      });
+    }
+
+    // --- round setup ---
+    function loadRound() {
+      clearCountdown();
+      feedbackEl.textContent = '';
+      countdownEl.textContent = '';
+      optionsEl.innerHTML = '';
+      answeredCurrent = false;
+
+      if (currentRound >= TOTAL_ROUNDS) {
+        // finished
+        lastMessage = 'Quiz complete!';
+        updateRoundInfo();
+        updateStatus();
+        return;
+      }
+
+      const countyIndex = order[currentRound];
+      const county = COUNTY_DATA[countyIndex];
+
+      countyNameEl.innerHTML = `
+        <span class="en">${county.en}</span>
+        <span class="ga">${county.ga}</span>
+      `;
+
+      // Build options: 1 correct, 2 random incorrect
+      const indices = [...Array(TOTAL_ROUNDS).keys()];
+      const incorrectPool = indices.filter(i => i !== countyIndex);
+      shuffle(incorrectPool);
+      const wrong1 = COUNTY_DATA[incorrectPool[0]].meaning;
+      const wrong2 = COUNTY_DATA[incorrectPool[1]].meaning;
+
+      let options = [
+        { text: county.meaning, correct: true },
+        { text: wrong1,         correct: false },
+        { text: wrong2,         correct: false }
+      ];
+      shuffle(options);
+
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt.text;
+        btn.addEventListener('click', () => handleAnswer(opt.correct, btn, county.meaning));
+        optionsEl.appendChild(btn);
+      });
+
+      updateRoundInfo();
+      updateStatus();
+    }
+
+    // --- answer handling ---
+    function handleAnswer(isCorrect, clickedBtn, correctMeaning) {
+      if (answeredCurrent) return;
+      answeredCurrent = true;
+      setButtonsEnabled(false);
+
+      roundsPlayed++;
+
+      if (isCorrect) {
+        clickedBtn.classList.add('correct');
+        lastMessage = 'Correct!';
+        feedbackEl.textContent = `Correct: ${correctMeaning}`;
+        score++;
+      } else {
+        clickedBtn.classList.add('incorrect');
+        // also highlight the correct one
+        const buttons = optionsEl.querySelectorAll('button.option-btn');
+        buttons.forEach(btn => {
+          if (btn.textContent === correctMeaning) {
+            btn.classList.add('correct');
+          }
+        });
+        lastMessage = 'Incorrect.';
+        feedbackEl.textContent = `Incorrect. Correct origin: ${correctMeaning}`;
+      }
+
+      updateStatus();
+
+      if (currentRound >= TOTAL_ROUNDS - 1) {
+        // last round – no countdown to next
+        currentRound++;
+        loadRound();
+      } else {
+        startCountdownToNextRound();
+      }
+    }
+
+    function startCountdownToNextRound() {
+      clearCountdown();
+      currentRound++; // move pointer to next round
+      countdownRemaining = 5;
+      countdownEl.textContent = `Next county in ${countdownRemaining}…`;
+
+      countdownInterval = setInterval(() => {
+        countdownRemaining--;
+        if (countdownRemaining > 0) {
+          countdownEl.textContent = `Next county in ${countdownRemaining}…`;
+        } else {
+          clearCountdown();
+          loadRound();
+        }
+      }, 1000);
+    }
+
+    // --- game reset ---
+    function startGame() {
+      clearCountdown();
+      order = shuffle([...Array(TOTAL_ROUNDS).keys()]);
+      currentRound = 0;
+      score = 0;
+      roundsPlayed = 0;
+      lastMessage = '';
+      answeredCurrent = false;
+      loadRound();
+    }
+
+    // --- top bar events ---
+    homeBtn.addEventListener('click', () => {
+      window.location.href = 'home.html';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      resetOverlay.classList.remove('hidden');
+    });
+
+    resetNoBtn.addEventListener('click', () => {
+      resetOverlay.classList.add('hidden');
+    });
+
+    resetYesBtn.addEventListener('click', () => {
+      resetOverlay.classList.add('hidden');
+      startGame();
+    });
+
+    // --- boot ---
+    startGame();
+  </script>
 </body>
 </html>
