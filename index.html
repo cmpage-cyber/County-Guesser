@@ -274,7 +274,7 @@
     let score = 0;
     let currentIndex = null;
     let globalBounds = null;    // bounds for full map drawing
-    let latScaleFactor = 1.0;   // flatten factor for Ireland
+    let latScaleFactor = 0.7;   // flatten factor for Ireland
 
     let usedHint1 = false;
     let usedHint2 = false;
@@ -511,6 +511,9 @@
       hint1Btn.disabled = false;
       hint2Btn.disabled = false;
       hintTextEl.textContent = '';
+      // reset button labels for toggles
+      hint1Btn.textContent = 'Show map';
+      hint2Btn.textContent = 'Starting characters';
     }
 
     function nextRound() {
@@ -558,19 +561,33 @@
     }
 
     function onHint1() {
-      if (currentIndex == null || usedHint1) return;
-      drawFullMapHighlight(currentIndex);
-      usedHint1 = true;
-      hint1Btn.disabled = true;
+      if (currentIndex == null) return;
+      // toggle behaviour
+      if (!usedHint1) {
+        drawFullMapHighlight(currentIndex);
+        usedHint1 = true;
+        hint1Btn.textContent = 'Hide map';
+      } else {
+        drawCountyOutline(currentIndex);
+        usedHint1 = false;
+        hint1Btn.textContent = 'Show map';
+      }
     }
 
     function onHint2() {
-      if (currentIndex == null || usedHint2) return;
+      if (currentIndex == null) return;
       const county = counties[currentIndex];
       const ga = county.ga || '';
-      hintTextEl.textContent = 'Starting characters: ' + ga.slice(0, 3);
-      usedHint2 = true;
-      hint2Btn.disabled = true;
+      // toggle behaviour
+      if (!usedHint2) {
+        hintTextEl.textContent = 'Starting characters: ' + ga.slice(0, 3);
+        usedHint2 = true;
+        hint2Btn.textContent = 'Hide starting characters';
+      } else {
+        hintTextEl.textContent = '';
+        usedHint2 = false;
+        hint2Btn.textContent = 'Starting characters';
+      }
     }
 
     // ---- start / restart game ----
@@ -625,4 +642,3 @@
   </script>
 </body>
 </html>
-
