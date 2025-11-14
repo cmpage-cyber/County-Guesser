@@ -144,6 +144,13 @@
       margin-bottom: 0.25rem;
     }
 
+    /* countdown text */
+    #countdown {
+      margin-top: 0.25rem;
+      font-size: 0.9rem;
+      color: #b04a1f;
+    }
+
     /* responsive stacking: log under map on narrow screens */
     @media (max-width: 768px) {
       .layout {
@@ -214,6 +221,7 @@
     <h1>Name That County (as Gaeilge)</h1>
     <div id="roundInfo">Loading…</div>
     <div id="status"></div>
+    <div id="countdown"></div>
     <div id="hintText"></div>
 
     <div id="controls">
@@ -258,6 +266,7 @@
     const hintTextEl = document.getElementById('hintText');
     const logEl = document.getElementById('log');
     const roundInfoEl = document.getElementById('roundInfo');
+    const countdownEl = document.getElementById('countdown');
 
     // top-bar + reset dialog
     const homeBtn = document.getElementById('homeBtn');
@@ -278,6 +287,7 @@
     let usedHint1 = false;
     let usedHint2 = false;
     let lastMessage = '';
+    let countdownTimer = null;  // countdown between rounds
 
     // ---- utility: random shuffle ----
     function shuffle(arr) {
@@ -286,6 +296,14 @@
         [arr[i], arr[j]] = [arr[j], arr[i]];
       }
       return arr;
+    }
+
+    // ---- enable/disable controls ----
+    function setControlsEnabled(on) {
+      answerInput.disabled = !on;
+      enterBtn.disabled = !on;
+      hint1Btn.disabled = !on;
+      hint2Btn.disabled = !on;
     }
 
     // ---- name helpers ----
@@ -519,6 +537,9 @@
     }
 
     function nextRound() {
+      // clear any leftover countdown text (safety)
+      countdownEl.textContent = '';
+
       if (pos >= order.length) {
         lastMessage = 'All counties have been shown.';
         updateStatus();
@@ -540,6 +561,37 @@
       updateLog();
     }
 
+    // ---- 5-second countdown between rounds ----
+    function startCountdownAndGo() {
+      // If we've just finished the last county, go straight to game over
+      if (pos >= order.length) {
+        nextRound();
+        return;
+      }
+
+      let t = 5;
+      countdownEl.textContent = `Next question in ${t}…`;
+      setControlsEnabled(false);
+
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+
+      countdownTimer = setInterval(() => {
+        t -= 1;
+        if (t > 0) {
+          countdownEl.textContent = `Next question in ${t}…`;
+        } else {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+          countdownEl.textContent = '';
+          setControlsEnabled(true);
+          nextRound();
+        }
+      }, 1000);
+    }
+
     // ---- button handlers ----
     function onEnter() {
       if (currentIndex == null) return;
@@ -559,7 +611,8 @@
 
       pos += 1;
       updateLog();
-      nextRound();
+      updateStatus();
+      startCountdownAndGo();
     }
 
     function onHint1() {
@@ -595,6 +648,14 @@
     // ---- start / restart game ----
     async function startGame() {
       try {
+        // cancel any active countdown
+        if (countdownTimer) {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+        }
+        countdownEl.textContent = '';
+        setControlsEnabled(true);
+
         if (!counties.length) {
           await loadData();
         }
@@ -605,7 +666,7 @@
         lastMessage = '';
         currentIndex = null;
         updateLog();
-        nextRound();
+        nextRound();  // first round shows immediately (no countdown before Q1)
       } catch (err) {
         console.error(err);
         roundInfoEl.textContent = 'Error loading data.';
@@ -644,5 +705,3 @@
   </script>
 </body>
 </html>
-
-
