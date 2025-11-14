@@ -614,7 +614,7 @@
     
       let hintSummary = '';
       if (pos >= order.length) {
-        hintSummary = ` | Hints used|: 🌍 Show map: ${totalHint1Used}, 🔤 Starting characters: ${totalHint2Used}`;
+        hintSummary = ` | Hints used: 🌍 Show map: ${totalHint1Used}, 🔤 Starting characters: ${totalHint2Used}`;
       }
     
       // Game over: show answer line, then score/hints on a new line
@@ -672,7 +672,7 @@
         return;
       }
 
-      let t = 1;
+      let t = 5;
       countdownEl.textContent = `Next question in ${t}…`;
       setControlsEnabled(false);
 
@@ -835,4 +835,5 @@
   </script>
 </body>
 </html>
+
 
