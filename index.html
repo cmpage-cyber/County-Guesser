@@ -60,8 +60,8 @@
     /* page content wrapper */
     .page {
       padding: 0.75rem 1rem 1.25rem;
-      max-width: 1100px;   /* NEW: constrain width on large screens */
-      margin: 0 auto;      /* NEW: centre the whole quiz horizontally */
+      max-width: 1100px;
+      margin: 0 auto;
     }
 
     h1 {
@@ -75,13 +75,19 @@
       margin-top: 0.75rem;
       flex-wrap: wrap;
     }
+
+    /* SHRUNK + CENTERED MAP CONTAINER */
     #mapContainer {
       background: #ffffff;
       padding: 0.5rem;
       border-radius: 6px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      flex: 1 1 320px;
+      flex: 0 0 540px;        /* was: flex: 1 1 320px; */
+      max-width: 540px;
+      display: flex;          /* centre canvas nicely */
+      justify-content: center;
     }
+
     canvas {
       display: block;
       background: #ffffff;
@@ -195,6 +201,11 @@
         max-width: none;
         width: 100%;
       }
+      #mapContainer {
+        flex: 1 1 auto;      /* let it grow again on small screens */
+        max-width: none;
+        justify-content: center;
+      }
     }
 
     /* --- reset confirmation overlay --- */
@@ -264,7 +275,6 @@
       <button id="enterBtn">Enter</button>
       <button id="hint1Btn">Show map</button>
       <button id="hint2Btn">Starting characters</button>
-      <!-- old Reset button removed; reset now lives in the top banner -->
     </div>
 
     <div class="layout">
@@ -347,26 +357,24 @@
     const resetNoBtn = document.getElementById('resetNo');
 
     // ---- game state ----
-    let counties = [];          // { en, ga, rings: [ [ {x,y}, ... ], ... ] }
-    let order = [];             // random order of indices
-    let pos = 0;                // position in order
-    let shown = [];             // { id, index, correct, answer }
+    let counties = [];
+    let order = [];
+    let pos = 0;
+    let shown = [];
     let score = 0;
     let currentIndex = null;
-    let globalBounds = null;    // bounds for full map drawing
+    let globalBounds = null;
 
     let usedHint1 = false;
     let usedHint2 = false;
     let lastMessage = '';
-    let countdownTimer = null;  // countdown between rounds
+    let countdownTimer = null;
 
-    // ---- helpers ----
     const esc = (s) =>
       String(s).replace(/[&<>"]/g, c =>
         ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])
       );
 
-    // ---- utility: random shuffle ----
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -375,7 +383,6 @@
       return arr;
     }
 
-    // ---- enable/disable controls ----
     function setControlsEnabled(on) {
       answerInput.disabled = !on;
       enterBtn.disabled = !on;
@@ -383,7 +390,6 @@
       hint2Btn.disabled = !on;
     }
 
-    // ---- name helpers ----
     function getNameEn(props) {
       const keys = ["name_en", "NAME_EN", "CountyName", "name", "NAME", "County", "county"];
       for (const k of keys) {
@@ -399,7 +405,6 @@
       return '';
     }
 
-    // ---- geometry helpers ----
     function ringsFromGeometry(geom) {
       const t = geom.type;
       const C = geom.coordinates || [];
@@ -415,7 +420,6 @@
       return out;
     }
 
-    // ---------- Load GeoJSON + pre-scale ----------
     async function loadData() {
       const resp = await fetch('irish_counties_simplified.geojson?v=2', { cache: 'no-store' });
       if (!resp.ok) throw new Error('Failed to load GeoJSON');
@@ -456,29 +460,19 @@
         return { en: f.en, ga: f.ga, rings: ringsScaled };
       });
       globalBounds = { minX, maxX, minY, maxY };
-      console.log('Loaded counties:', counties.length);
     }
 
-    // ---- projection to canvas (same as working version) ----
     function projectPoint(pt, bounds) {
       const padding = 20;
       const w = canvas.width;
       const h = canvas.height;
-
       const spanX = bounds.maxX - bounds.minX;
       const spanY = bounds.maxY - bounds.minY;
-
-      const scale = Math.min(
-        (w - 2 * padding) / spanX,
-        (h - 2 * padding) / spanY
-      );
-
+      const scale = Math.min((w - 2 * padding) / spanX, (h - 2 * padding) / spanY);
       const offsetX = (w - scale * spanX) / 2;
       const offsetY = (h - scale * spanY) / 2;
-
       const x = offsetX + (pt.x - bounds.minX) * scale;
-      const y = h - (offsetY + (pt.y - bounds.minY) * scale); // invert y
-
+      const y = h - (offsetY + (pt.y - bounds.minY) * scale);
       return { x, y };
     }
 
@@ -503,7 +497,6 @@
       };
     }
 
-    // ---- drawing ----
     function clearCanvas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#ffffff';
@@ -537,7 +530,6 @@
       ctx.lineWidth = 1;
       ctx.strokeStyle = '#dddddd';
 
-      // all counties
       for (const county of counties) {
         ctx.beginPath();
         let first = true;
@@ -555,7 +547,6 @@
         ctx.stroke();
       }
 
-      // highlight current
       const county = counties[index];
       ctx.lineWidth = 2;
       ctx.strokeStyle = '#000000';
@@ -575,7 +566,6 @@
       ctx.stroke();
     }
 
-    // ---- log / UI updates ----
     function buildLogHTML() {
       if (!shown.length) {
         return '<div class="log-item">No answers yet.</div>';
@@ -621,13 +611,11 @@
       hint1Btn.disabled = false;
       hint2Btn.disabled = false;
       hintTextEl.textContent = '';
-      // reset button labels for toggles
       hint1Btn.textContent = 'Show map';
       hint2Btn.textContent = 'Starting characters';
     }
 
     function nextRound() {
-      // clear any leftover countdown text (safety)
       countdownEl.textContent = '';
 
       if (pos >= order.length) {
@@ -651,9 +639,7 @@
       updateLog();
     }
 
-    // ---- 5-second countdown between rounds ----
     function startCountdownAndGo() {
-      // If we've just finished the last county, go straight to game over
       if (pos >= order.length) {
         nextRound();
         return;
@@ -682,7 +668,6 @@
       }, 1000);
     }
 
-    // ---- button handlers ----
     function onEnter() {
       if (currentIndex == null) return;
       const county = counties[currentIndex];
@@ -710,7 +695,6 @@
 
     function onHint1() {
       if (currentIndex == null) return;
-      // toggle behaviour
       if (!usedHint1) {
         drawFullMapHighlight(currentIndex);
         usedHint1 = true;
@@ -726,7 +710,6 @@
       if (currentIndex == null) return;
       const county = counties[currentIndex];
       const ga = county.ga || '';
-      // toggle behaviour
       if (!usedHint2) {
         hintTextEl.textContent = 'Starting characters: ' + ga.slice(0, 3);
         usedHint2 = true;
@@ -738,10 +721,8 @@
       }
     }
 
-    // ---- start / restart game ----
     async function startGame() {
       try {
-        // cancel any active countdown
         if (countdownTimer) {
           clearInterval(countdownTimer);
           countdownTimer = null;
@@ -759,7 +740,7 @@
         lastMessage = '';
         currentIndex = null;
         updateLog();
-        nextRound();  // first round shows immediately (no countdown before Q1)
+        nextRound();
       } catch (err) {
         console.error(err);
         roundInfoEl.textContent = 'Error loading data.';
@@ -767,7 +748,6 @@
       }
     }
 
-    // ---- wire events ----
     enterBtn.addEventListener('click', onEnter);
     answerInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
@@ -778,7 +758,6 @@
     hint1Btn.addEventListener('click', onHint1);
     hint2Btn.addEventListener('click', onHint2);
 
-    // reveal/hide guess (event delegation)
     logEl.addEventListener('click', (e) => {
       const btn = e.target.closest('.reveal');
       if (!btn) return;
@@ -790,7 +769,6 @@
       btn.textContent = visible ? 'Show guess' : 'Hide guess';
     });
 
-    // top bar events
     homeBtn.addEventListener('click', () => {
       window.location.href = 'home.html';
     });
@@ -802,10 +780,9 @@
     });
     resetYesBtn.addEventListener('click', () => {
       resetOverlay.classList.add('hidden');
-      startGame();  // actually restart the quiz
+      startGame();
     });
 
-    // ---- boot ----
     startGame();
   </script>
 </body>
