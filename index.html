@@ -97,15 +97,48 @@
       flex: 0 0 280px;
     }
     #log {
-      white-space: pre-wrap;
-      font-family: "SF Mono", Menlo, Consolas, monospace;
-      font-size: 0.9rem;
       border-top: 1px solid #eee;
       margin-top: 0.5rem;
       padding-top: 0.5rem;
       max-height: 420px;
       overflow-y: auto;
     }
+
+    .log-item {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      border: 1px solid #eef1f4;
+      border-radius: 8px;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      background: #fafbfc;
+    }
+    .log-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .log-line {
+      white-space: pre-wrap;
+      margin-right: 8px;
+    }
+    .guess {
+      display: none;
+      margin-top: 4px;
+      color: #333;
+    }
+    .guess b { color: #000; }
+    .reveal {
+      padding: 4px 8px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      border: 1px solid #d7dce1;
+      background: #fff;
+      cursor: pointer;
+    }
+    .reveal:hover { background: #f2f4f7; }
+
     #controls {
       margin-top: 0.75rem;
       display: flex;
@@ -255,6 +288,42 @@
   </div>
 
   <script>
+    // ---------- ETYMOLOGY ----------
+    const ETYM = {
+      "Antrim":      ["Aontroim",        "‘Lone ridge’ (aon + droim)."],
+      "Armagh":      ["Ard Mhacha",      "‘Height of Macha’ (goddess Macha)."],
+      "Down":        ["An Dún",          "‘The fort’."] ,
+      "Fermanagh":   ["Fir Manach",      "‘Men/land of Manach’."] ,
+      "Tyrone":      ["Tír Eoghain",     "‘Land of Eoghan’."] ,
+      "Derry":       ["Doire",           "‘Oak grove/wood’."] ,
+      "Donegal":     ["Dún na nGall",    "‘Fort of the foreigners’."] ,
+      "Monaghan":    ["Muineachán",      "‘Place of little thickets’."] ,
+      "Cavan":       ["An Cabhán",       "‘The hollow/little hill’."] ,
+      "Dublin":      ["Baile Átha Cliath","‘Town of the ford of hurdles’."] ,
+      "Kildare":     ["Cill Dara",       "‘Church of the oak’."] ,
+      "Kilkenny":    ["Cill Chainnigh",  "‘Church of (St.) Canice’."] ,
+      "Laois":       ["Laois",           "From Uí Laoighis ‘people of Laoighseach’."] ,
+      "Longford":    ["An Longfort",     "‘The fortress/ship-fort’."] ,
+      "Louth":       ["Lú",              "Named after the god Lugh."] ,
+      "Meath":       ["An Mhí",          "From Mide ‘middle (kingdom)’."] ,
+      "Offaly":      ["Uíbh Fhailí",     "‘Descendants of Failge’."] ,
+      "Westmeath":   ["An Iarmhí",       "‘The western Meath’."] ,
+      "Wexford":     ["Loch Garman",     "‘Garman’s lake’."] ,
+      "Wicklow":     ["Cill Mhantáin",   "‘Church of Mantan’ (saint’s name)."] ,
+      "Carlow":      ["Ceatharlach",     "Possibly ‘place of cattle grazing’ / ‘four lakes’."] ,
+      "Clare":       ["An Clár",         "‘The board/plank’ (bridge) or ‘the plain’."] ,
+      "Cork":        ["Corcaigh",        "‘Marsh/boggy place’."] ,
+      "Kerry":       ["Ciarraí",         "‘People of Ciar’ (Ciarraige)."] ,
+      "Limerick":    ["Luimneach",       "Possibly ‘bare place’ / floodplain."] ,
+      "Tipperary":   ["Tiobraid Árann",  "‘The well of the River Ara’."] ,
+      "Waterford":   ["Port Láirge",     "‘Harbour of the (river) Lairge’."] ,
+      "Galway":      ["Gaillimh",        "From River Gaillimh; often glossed ‘stony/rocky’."] ,
+      "Leitrim":     ["Liatroim",        "‘Grey ridge’ (liath + droim)."] ,
+      "Mayo":        ["Maigh Eo",        "‘Plain of the yew trees’."] ,
+      "Roscommon":   ["Ros Comáin",      "‘Comán’s wood’."] ,
+      "Sligo":       ["Sligeach",        "‘Shelly place/abounding in shells’."] ,
+    };
+
     // ---- basic DOM refs ----
     const canvas = document.getElementById('map');
     const ctx = canvas.getContext('2d');
@@ -279,7 +348,7 @@
     let counties = [];          // { en, ga, rings: [ [ {x,y}, ... ], ... ] }
     let order = [];             // random order of indices
     let pos = 0;                // position in order
-    let shown = [];             // { index, correct, answer }
+    let shown = [];             // { id, index, correct, answer }
     let score = 0;
     let currentIndex = null;
     let globalBounds = null;    // bounds for full map drawing
@@ -288,6 +357,12 @@
     let usedHint2 = false;
     let lastMessage = '';
     let countdownTimer = null;  // countdown between rounds
+
+    // ---- helpers ----
+    const esc = (s) =>
+      String(s).replace(/[&<>"]/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])
+      );
 
     // ---- utility: random shuffle ----
     function shuffle(arr) {
@@ -499,18 +574,31 @@
     }
 
     // ---- log / UI updates ----
-    function buildLogText() {
-      if (!shown.length) return 'No answers yet.';
-      const lines = shown.map((entry, i) => {
+    function buildLogHTML() {
+      if (!shown.length) {
+        return '<div class="log-item">No answers yet.</div>';
+      }
+      return shown.map((entry, i) => {
         const c = counties[entry.index];
-        const mark = entry.correct ? 'Correct' : 'X';
-        return `${String(i + 1).padStart(2, ' ')}. ${mark}  ${c.ga}  (${c.en})`;
-      });
-      return lines.join('\n');
+        const mark = entry.correct ? '✅Correct: ' : '❌Incorrect: ';
+        const et = (ETYM[c.en] && ETYM[c.en][1])
+          ? ' — ' + esc(ETYM[c.en][1])
+          : '';
+        const line = `${String(i + 1).padStart(2, ' ')}. ${mark}  ${esc(c.ga)}  (${esc(c.en)})${et}`;
+        const guess = esc(entry.answer);
+        return `
+          <div class="log-item" data-id="${entry.id}">
+            <div class="log-top">
+              <div class="log-line">${line}</div>
+              <button class="reveal" data-id="${entry.id}" type="button">Show guess</button>
+            </div>
+            <div class="guess" id="guess-${entry.id}"><b>Entered:</b> ${guess}</div>
+          </div>`;
+      }).join('');
     }
 
     function updateLog() {
-      logEl.textContent = buildLogText();
+      logEl.innerHTML = buildLogHTML();
     }
 
     function updateStatus() {
@@ -597,17 +685,20 @@
       if (currentIndex == null) return;
       const county = counties[currentIndex];
       const ga = county.ga || '';
+      const en = county.en || '';
       const guess = answerInput.value.trim();
       if (!guess) return;
 
       const correct = guess === ga;
       if (correct) {
         score += 1;
-        lastMessage = `Correct: ${ga}`;
+        lastMessage = `✅Correct: ${ga} (${en})`;
       } else {
-        lastMessage = `Incorrect. Correct answer: ${ga}`;
+        lastMessage = `❌Incorrect. Correct answer: ${ga} (${en})`;
       }
-      shown.push({ index: currentIndex, correct, answer: guess });
+
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      shown.push({ id, index: currentIndex, correct, answer: guess });
 
       pos += 1;
       updateLog();
@@ -684,6 +775,18 @@
     });
     hint1Btn.addEventListener('click', onHint1);
     hint2Btn.addEventListener('click', onHint2);
+
+    // reveal/hide guess (event delegation)
+    logEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.reveal');
+      if (!btn) return;
+      const id = btn.getAttribute('data-id');
+      const block = document.getElementById(`guess-${id}`);
+      if (!block) return;
+      const visible = block.style.display === 'block';
+      block.style.display = visible ? 'none' : 'block';
+      btn.textContent = visible ? 'Show guess' : 'Hide guess';
+    });
 
     // top bar events
     homeBtn.addEventListener('click', () => {
