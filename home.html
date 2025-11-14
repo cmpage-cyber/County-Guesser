@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Irish County Quiz – Home</title>
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f4;
+      color: #111;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .card {
+      background: #ffffff;
+      padding: 1.75rem 1.5rem 1.75rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      max-width: 420px;
+      width: 100%;
+    }
+    h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.6rem;
+      text-align: center;
+    }
+    p.subtitle {
+      margin: 0 0 1.5rem 0;
+      text-align: center;
+      color: #555;
+      font-size: 0.95rem;
+    }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    button {
+      padding: 0.7rem 1rem;
+      font-size: 1rem;
+      border-radius: 999px;
+      border: 1px solid #ccc;
+      background: #f6f6f6;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.05s;
+    }
+    button.primary {
+      background: #1b8b3d;
+      border-color: #167234;
+      color: #fff;
+    }
+    button:hover {
+      background: #eaeaea;
+    }
+    button.primary:hover {
+      background: #187836;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    small {
+      display: block;
+      margin-top: 1rem;
+      text-align: center;
+      color: #777;
+      font-size: 0.82rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Irish County Quiz</h1>
+    <p class="subtitle">Choose how you want to explore the counties of Ireland.</p>
+
+    <div class="btn-group">
+      <button class="primary" onclick="window.location.href='index_learn_counties.html'">
+        Learn Counties
+      </button>
+
+      <button onclick="window.location.href='index.html'">
+        Name That County
+      </button>
+
+      <button onclick="window.location.href='county_origins.html'">
+        County Origins
+      </button>
+    </div>
+
+    <small>Tip: you can always come back here using the home icon in the top bar.</small>
+  </div>
+</body>
+</html>
