@@ -609,17 +609,22 @@
           ? `Round ${pos + 1} of ${order.length}`
           : 'Game over';
       roundInfoEl.textContent = roundText;
-      const scoreText = `Score: ${score} / ${shown.length}`;
+      const scoreText = `🏆 Score: ${score} / ${shown.length}`;
 
       // NEW: show hint usage summary when game is over
       let hintSummary = '';
       if (pos >= order.length) {
-        hintSummary = ` | Hints used|: Show map: ${totalHint1Used}, Starting characters: ${totalHint2Used}`;
+        hintSummary = ` | Hints used|: 🌍 Show map: ${totalHint1Used}, 🔤 Starting characters: ${totalHint2Used}`;
       }
 
-      statusEl.textContent = lastMessage
-        ? `${scoreText}${hintSummary} — ${lastMessage}`
-        : scoreText + hintSummary;
+      // On game over, show lastMessage *before* the summary
+      if (pos >= order.length && lastMessage) {
+        statusEl.textContent = `${lastMessage} — ${scoreText}${hintSummary}`;
+      } else {
+        statusEl.textContent = lastMessage
+          ? `${scoreText}${hintSummary} — ${lastMessage}`
+          : scoreText + hintSummary;
+      }
     }
 
     function resetHintsForRound() {
@@ -828,6 +833,3 @@
   </script>
 </body>
 </html>
-
-
-
