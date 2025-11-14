@@ -274,7 +274,6 @@
     let score = 0;
     let currentIndex = null;
     let globalBounds = null;    // bounds for full map drawing
-   
 
     let usedHint1 = false;
     let usedHint2 = false;
@@ -321,7 +320,6 @@
       return out;
     }
 
-    
     // ---------- Load GeoJSON + pre-scale ----------
     async function loadData() {
       const resp = await fetch('irish_counties_simplified.geojson?v=2', { cache: 'no-store' });
@@ -366,15 +364,26 @@
       console.log('Loaded counties:', counties.length);
     }
 
-    // ---- projection to canvas ----
+    // ---- projection to canvas (same as working version) ----
     function projectPoint(pt, bounds) {
       const padding = 20;
       const w = canvas.width;
       const h = canvas.height;
-      const sx = (w - 2 * padding) / (bounds.maxX - bounds.minX);
-      const sy = (h - 2 * padding) / (bounds.maxY - bounds.minY);
-      const x = padding + (pt.x - bounds.minX) * sx;
-      const y = h - (padding + (pt.y - bounds.minY) * sy); // invert y
+
+      const spanX = bounds.maxX - bounds.minX;
+      const spanY = bounds.maxY - bounds.minY;
+
+      const scale = Math.min(
+        (w - 2 * padding) / spanX,
+        (h - 2 * padding) / spanY
+      );
+
+      const offsetX = (w - scale * spanX) / 2;
+      const offsetY = (h - scale * spanY) / 2;
+
+      const x = offsetX + (pt.x - bounds.minX) * scale;
+      const y = h - (offsetY + (pt.y - bounds.minY) * scale); // invert y
+
       return { x, y };
     }
 
@@ -635,6 +644,3 @@
   </script>
 </body>
 </html>
-
-
-
